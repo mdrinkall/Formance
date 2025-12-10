@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npx expo start)",
+      "Bash(npx expo-doctor:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx expo install:*)",
+      "Bash(timeout 60 npx expo start:*)",
+      "Bash(npx expo --version)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(npx expo start --clear)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

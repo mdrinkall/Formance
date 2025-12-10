@@ -1,0 +1,61 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "jsx": "react-native",
+    "lib": [
+      "es2017"
+    ],
+    "types": [
+      "react-native",
+      "jest"
+    ],
+    "paths": {
+      "@/*": [
+        "./app/*"
+      ],
+      "@components/*": [
+        "./app/components/*"
+      ],
+      "@screens/*": [
+        "./app/screens/*"
+      ],
+      "@navigation/*": [
+        "./app/navigation/*"
+      ],
+      "@hooks/*": [
+        "./app/hooks/*"
+      ],
+      "@context/*": [
+        "./app/context/*"
+      ],
+      "@services/*": [
+        "./app/services/*"
+      ],
+      "@utils/*": [
+        "./app/utils/*"
+      ],
+      "@constants/*": [
+        "./app/constants/*"
+      ],
+      "@theme/*": [
+        "./app/theme/*"
+      ],
+      "@assets/*": [
+        "./app/assets/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
