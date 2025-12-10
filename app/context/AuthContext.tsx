@@ -1,7 +1,6 @@
 /**
  * Authentication Context
  * Provides auth state and methods throughout the app
- * TODO: Implement actual Supabase auth integration
  */
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -26,52 +25,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Check active session on mount
-    // supabase.auth.getSession().then(({ data: { session } }) => {
-    //   setSession(session);
-    //   setUser(session?.user ?? null);
-    //   setLoading(false);
-    // });
+    // Check active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    // TODO: Listen for auth changes
-    // const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-    //   setSession(session);
-    //   setUser(session?.user ?? null);
-    //   setLoading(false);
-    // });
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    // return () => subscription.unsubscribe();
-
-    // Placeholder - remove when implementing
-    setLoading(false);
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // TODO: Implement sign in with Supabase
-    // const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    // if (error) throw error;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    // TODO: Implement sign up with Supabase
-    // const { data, error } = await supabase.auth.signUp({
-    //   email,
-    //   password,
-    //   options: { data: { full_name: fullName } },
-    // });
-    // if (error) throw error;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+    if (error) throw error;
   };
 
   const signOut = async () => {
-    // TODO: Implement sign out with Supabase
-    // const { error } = await supabase.auth.signOut();
-    // if (error) throw error;
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   const resetPassword = async (email: string) => {
-    // TODO: Implement password reset with Supabase
-    // const { error } = await supabase.auth.resetPasswordForEmail(email);
-    // if (error) throw error;
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
   };
 
   const value = {

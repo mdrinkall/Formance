@@ -17,10 +17,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LiquidGlassButton } from '../../components/ui/LiquidGlassButton';
 import { palette } from '../../theme/palette';
+import { typography } from '@/styles';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const { width, height } = Dimensions.get('window');
 
-export default function OnboardingScreen() {
+type OnboardingScreenProps = {
+  navigation: NativeStackNavigationProp<any>;
+};
+
+export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const [showAuthButtons, setShowAuthButtons] = useState(false);
 
   // Animation values
@@ -28,8 +34,6 @@ export default function OnboardingScreen() {
   const authButtonsAnimation = useRef(new Animated.Value(0)).current;
 
   const handleGetStarted = () => {
-    console.log('Get Started pressed');
-
     // Animate Get Started button out
     Animated.timing(getStartedAnimation, {
       toValue: 1,
@@ -48,18 +52,17 @@ export default function OnboardingScreen() {
   };
 
   const handleAppleSignIn = () => {
-    console.log('Apple Sign In pressed');
     // TODO: Implement Apple Sign In
+    if (__DEV__) console.log('Apple Sign In - Not implemented');
   };
 
   const handleGoogleSignIn = () => {
-    console.log('Google Sign In pressed');
     // TODO: Implement Google Sign In
+    if (__DEV__) console.log('Google Sign In - Not implemented');
   };
 
   const handleEmailSignIn = () => {
-    console.log('Email Sign In pressed');
-    // TODO: Navigate to email sign in
+    navigation.navigate('Login');
   };
 
   // Shared style for glass button border
@@ -233,26 +236,21 @@ const styles = StyleSheet.create({
     paddingRight: width * 0.05,
   },
   subtitle: {
-    fontSize: 16,
-    fontWeight: '400',
+    ...typography.body,
     color: palette.accent.white,
     letterSpacing: 2,
     marginBottom: 4,
     opacity: 0.9,
   },
   title: {
-    fontSize: 48,
-    fontWeight: '700',
+    ...typography.h1,
     color: palette.accent.white,
     letterSpacing: 1,
-    lineHeight: 56,
     marginBottom: 16,
   },
   tagline: {
-    fontSize: 15,
-    fontWeight: '400',
+    ...typography.bodySmall,
     color: palette.accent.white,
-    lineHeight: 22,
     opacity: 0.85,
     marginTop: 8,
   },
@@ -265,8 +263,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    ...typography.button,
     color: palette.accent.white,
     letterSpacing: 0.5,
   },
@@ -278,8 +275,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   authButtonText: {
+    ...typography.button,
     fontSize: 16,
-    fontWeight: '600',
     color: palette.accent.white,
     letterSpacing: 0.3,
   },

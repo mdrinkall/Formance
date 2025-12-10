@@ -10,7 +10,11 @@
       "Bash(npx expo --version)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(npx expo start --clear)"
+      "Bash(npx expo start --clear)",
+      "Bash(tree:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

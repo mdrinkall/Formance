@@ -10,6 +10,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../hooks/useAuth';
 import { AuthNavigator } from './AuthNavigator';
 import { AppNavigator } from './AppNavigator';
+import { LoadingScreen } from '../components/layout/LoadingScreen';
 
 const Stack = createStackNavigator();
 
@@ -17,8 +18,7 @@ export const RootNavigator: React.FC = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    // TODO: Show loading screen
-    return null;
+    return <LoadingScreen />;
   }
 
   return (

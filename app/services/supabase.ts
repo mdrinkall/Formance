@@ -1,32 +1,41 @@
 /**
  * Supabase client configuration
- * TODO: Configure with actual Supabase credentials from .env
  */
 
+import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-// TODO: Replace with actual environment variables
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+// Get Supabase credentials from app config
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || '';
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || '';
 
-// Custom storage adapter for React Native
-const ExpoSecureStoreAdapter = {
-  getItem: async (key: string) => {
-    return await SecureStore.getItemAsync(key);
-  },
-  setItem: async (key: string, value: string) => {
-    await SecureStore.setItemAsync(key, value);
-  },
-  removeItem: async (key: string) => {
-    await SecureStore.deleteItemAsync(key);
-  },
-};
+// Validate credentials
+if (!supabaseUrl || !supabaseAnonKey) {
+  const errorMessage =
+    '❌ Supabase Configuration Error\n' +
+    '- Missing credentials in app.config.js\n' +
+    '- Ensure .env file has EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY\n' +
+    '- Restart with: npx expo start --clear';
 
-// Create Supabase client
+  if (__DEV__) {
+    console.error(errorMessage);
+    console.error('URL:', supabaseUrl || 'missing');
+    console.error('Key:', supabaseAnonKey ? 'present' : 'missing');
+  }
+  throw new Error('Supabase credentials not configured');
+}
+
+// Success logging only in development
+if (__DEV__) {
+  console.log('✅ Supabase initialized');
+}
+
+// Create Supabase client with AsyncStorage
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: ExpoSecureStoreAdapter,
+    storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,

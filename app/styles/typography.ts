@@ -36,50 +36,64 @@ export const lineHeight = {
 
 // Typography presets - ready-to-use text styles
 export const typography: Record<string, TextStyle> = {
-  // Headings
+  // Headings - Modern, bold, professional
   h1: {
     fontSize: fontSize['5xl'],
     fontWeight: fontWeight.bold,
     lineHeight: fontSize['5xl'] * lineHeight.tight,
     color: palette.text.light.primary,
+    fontFamily: 'System',
+    letterSpacing: -0.5,
   },
   h2: {
     fontSize: fontSize['4xl'],
     fontWeight: fontWeight.bold,
     lineHeight: fontSize['4xl'] * lineHeight.tight,
     color: palette.text.light.primary,
+    fontFamily: 'System',
+    letterSpacing: -0.5,
   },
   h3: {
     fontSize: fontSize['3xl'],
     fontWeight: fontWeight.semibold,
     lineHeight: fontSize['3xl'] * lineHeight.tight,
     color: palette.text.light.primary,
+    fontFamily: 'System',
+    letterSpacing: -0.3,
   },
   h4: {
     fontSize: fontSize['2xl'],
     fontWeight: fontWeight.semibold,
     lineHeight: fontSize['2xl'] * lineHeight.normal,
     color: palette.text.light.primary,
+    fontFamily: 'System',
+    letterSpacing: -0.2,
   },
 
-  // Body text
+  // Body text - Clean, readable
   body: {
     fontSize: fontSize.base,
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.base * lineHeight.normal,
     color: palette.text.light.primary,
+    fontFamily: 'System',
+    letterSpacing: 0.2,
   },
   bodyLarge: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.lg * lineHeight.normal,
     color: palette.text.light.primary,
+    fontFamily: 'System',
+    letterSpacing: 0.2,
   },
   bodySmall: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.sm * lineHeight.normal,
     color: palette.text.light.secondary,
+    fontFamily: 'System',
+    letterSpacing: 0.1,
   },
 
   // Special text styles
@@ -88,18 +102,24 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.xs * lineHeight.normal,
     color: palette.text.light.secondary,
+    fontFamily: 'System',
+    letterSpacing: 0.3,
   },
   button: {
     fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
     lineHeight: fontSize.base * lineHeight.tight,
     color: palette.accent.white,
+    fontFamily: 'System',
+    letterSpacing: 0.5,
   },
   label: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
     lineHeight: fontSize.sm * lineHeight.normal,
     color: palette.text.light.primary,
+    fontFamily: 'System',
+    letterSpacing: 0.3,
   },
 
   // Dark variants (for dark backgrounds)
@@ -108,17 +128,23 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.bold,
     lineHeight: fontSize['5xl'] * lineHeight.tight,
     color: palette.text.dark.primary,
+    fontFamily: 'System',
+    letterSpacing: -0.5,
   },
   h2Dark: {
     fontSize: fontSize['4xl'],
     fontWeight: fontWeight.bold,
     lineHeight: fontSize['4xl'] * lineHeight.tight,
     color: palette.text.dark.primary,
+    fontFamily: 'System',
+    letterSpacing: -0.5,
   },
   bodyDark: {
     fontSize: fontSize.base,
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.base * lineHeight.normal,
     color: palette.text.dark.primary,
+    fontFamily: 'System',
+    letterSpacing: 0.2,
   },
 };

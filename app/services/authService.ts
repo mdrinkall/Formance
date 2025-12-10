@@ -22,17 +22,18 @@ export type SignInData = {
  * @param data - Sign up data
  */
 export const signUp = async (data: SignUpData) => {
-  // TODO: Implement Supabase sign up
-  // const { data: authData, error } = await supabase.auth.signUp({
-  //   email: data.email,
-  //   password: data.password,
-  //   options: {
-  //     data: {
-  //       full_name: data.fullName,
-  //     },
-  //   },
-  // });
-  throw new Error('Not implemented');
+  const { data: authData, error } = await supabase.auth.signUp({
+    email: data.email,
+    password: data.password,
+    options: {
+      data: {
+        full_name: data.fullName,
+      },
+    },
+  });
+
+  if (error) throw error;
+  return authData;
 };
 
 /**
@@ -40,39 +41,39 @@ export const signUp = async (data: SignUpData) => {
  * @param data - Sign in data
  */
 export const signIn = async (data: SignInData) => {
-  // TODO: Implement Supabase sign in
-  // const { data: authData, error } = await supabase.auth.signInWithPassword({
-  //   email: data.email,
-  //   password: data.password,
-  // });
-  throw new Error('Not implemented');
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
+    email: data.email,
+    password: data.password,
+  });
+
+  if (error) throw error;
+  return authData;
 };
 
 /**
  * Sign out the current user
  */
 export const signOut = async () => {
-  // TODO: Implement Supabase sign out
-  // const { error } = await supabase.auth.signOut();
-  throw new Error('Not implemented');
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 };
 
 /**
  * Get the current user session
  */
 export const getSession = async () => {
-  // TODO: Implement get session
-  // const { data: { session }, error } = await supabase.auth.getSession();
-  throw new Error('Not implemented');
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return session;
 };
 
 /**
  * Get the current user
  */
 export const getCurrentUser = async () => {
-  // TODO: Implement get current user
-  // const { data: { user }, error } = await supabase.auth.getUser();
-  throw new Error('Not implemented');
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  return user;
 };
 
 /**
@@ -80,9 +81,8 @@ export const getCurrentUser = async () => {
  * @param email - User email
  */
 export const resetPassword = async (email: string) => {
-  // TODO: Implement password reset
-  // const { error } = await supabase.auth.resetPasswordForEmail(email);
-  throw new Error('Not implemented');
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) throw error;
 };
 
 /**
@@ -90,9 +90,8 @@ export const resetPassword = async (email: string) => {
  * @param newPassword - New password
  */
 export const updatePassword = async (newPassword: string) => {
-  // TODO: Implement password update
-  // const { error } = await supabase.auth.updateUser({ password: newPassword });
-  throw new Error('Not implemented');
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
 };
 
 /**
@@ -109,7 +108,7 @@ export const verifyEmail = async (token: string) => {
  * @param provider - OAuth provider (google, apple, etc.)
  */
 export const signInWithOAuth = async (provider: 'google' | 'apple' | 'facebook') => {
-  // TODO: Implement OAuth sign in
-  // const { data, error } = await supabase.auth.signInWithOAuth({ provider });
-  throw new Error('Not implemented');
+  const { data, error } = await supabase.auth.signInWithOAuth({ provider });
+  if (error) throw error;
+  return data;
 };
