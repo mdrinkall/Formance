@@ -15,9 +15,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { palette } from '../../theme/palette';
-// Updated Import
 import { LiquidGlassButton } from '../../components/ui/LiquidGlassButton';
+import { palette } from '../../theme/palette';
 
 const { width, height } = Dimensions.get('window');
 
@@ -63,7 +62,7 @@ export default function OnboardingScreen() {
     // TODO: Navigate to email sign in
   };
 
-  // Shared style for preserving the specific border look of your original design
+  // Shared style for glass button border
   const glassButtonStyle = {
     borderRadius: 9999,
     borderWidth: 1,
@@ -78,7 +77,7 @@ export default function OnboardingScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        {/* Gradient Overlay for better text readability */}
+        {/* Gradient Overlay */}
         <LinearGradient
           colors={[
             'rgba(0, 0, 0, 0.4)',
@@ -161,7 +160,7 @@ export default function OnboardingScreen() {
                       tintColor="rgba(255, 255, 255, 0.15)"
                       style={glassButtonStyle}
                       textStyle={styles.authButtonText}
-                      icon={<Ionicons name="logo-apple" size={24} color="#FFFFFF" />}
+                      icon={<Ionicons name="logo-apple" size={24} color={palette.accent.white} />}
                       iconPosition="left"
                       fullWidth
                     />
@@ -177,7 +176,7 @@ export default function OnboardingScreen() {
                       tintColor="rgba(255, 255, 255, 0.15)"
                       style={glassButtonStyle}
                       textStyle={styles.authButtonText}
-                      icon={<Ionicons name="logo-google" size={24} color="#FFFFFF" />}
+                      icon={<Ionicons name="logo-google" size={24} color={palette.accent.white} />}
                       iconPosition="left"
                       fullWidth
                     />
@@ -190,11 +189,10 @@ export default function OnboardingScreen() {
                       onPress={handleEmailSignIn}
                       size="large"
                       variant="primary"
-                      // Keeping your specific Green tint
                       tintColor={`${palette.primary[900]}DD`}
                       style={glassButtonStyle}
                       textStyle={styles.authButtonText}
-                      icon={<Ionicons name="mail" size={24} color="#FFFFFF" />}
+                      icon={<Ionicons name="mail" size={24} color={palette.accent.white} />}
                       iconPosition="left"
                       fullWidth
                     />
@@ -212,79 +210,77 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.background.dark,
   },
   backgroundImage: {
     flex: 1,
-    width: width,
-    height: height,
+    width,
+    height,
   },
   gradient: {
     flex: 1,
-    width: width,
-    height: height,
+    width,
+    height,
   },
   safeArea: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: width * 0.06, // 6% of screen width
-    paddingVertical: height * 0.025, // 2.5% of screen height
+    paddingHorizontal: width * 0.06,
   },
   titleContainer: {
-    marginTop: height * 0.1, // 10% from top
+    marginTop: height * 0.1,
     alignItems: 'flex-start',
-    paddingRight: width * 0.05, // Ensure text doesn't touch edges
+    paddingRight: width * 0.05,
   },
   subtitle: {
-    fontSize: Math.min(width * 0.04, 16), // Responsive but max 16
+    fontSize: 16,
     fontWeight: '400',
-    color: '#FFFFFF',
+    color: palette.accent.white,
     letterSpacing: 2,
     marginBottom: 4,
     opacity: 0.9,
   },
   title: {
-    fontSize: Math.min(width * 0.12, 48), // Responsive but max 48
+    fontSize: 48,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.accent.white,
     letterSpacing: 1,
-    lineHeight: Math.min(width * 0.14, 56), // Proportional line height
+    lineHeight: 56,
     marginBottom: 16,
   },
   tagline: {
-    fontSize: Math.min(width * 0.038, 15), // Responsive but max 15
+    fontSize: 15,
     fontWeight: '400',
-    color: '#FFFFFF',
-    lineHeight: Math.min(width * 0.055, 22), // Proportional line height
+    color: palette.accent.white,
+    lineHeight: 22,
     opacity: 0.85,
     marginTop: 8,
   },
   buttonContainer: {
-    marginBottom: height * 0.08, // 8% from bottom
+    marginBottom: height * 0.08,
     alignItems: 'center',
     paddingHorizontal: width * 0.02,
   },
   buttonWrapper: {
     width: '100%',
   },
-  /* Removed manual glassButton styles as they are now handled by the component props */
   buttonText: {
-    fontSize: Math.min(width * 0.045, 18), // Responsive but max 18
+    fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF', // White text for glass button
+    color: palette.accent.white,
     letterSpacing: 0.5,
   },
   authButtonsContainer: {
     width: '100%',
-    gap: height * 0.015, // Responsive gap
+    gap: height * 0.015,
   },
   authButtonWrapper: {
     width: '100%',
   },
   authButtonText: {
-    fontSize: Math.min(width * 0.04, 16), // Responsive but max 16
-    fontWeight: '600', // Bold text for glass effect
-    color: '#FFFFFF', // White text
+    fontSize: 16,
+    fontWeight: '600',
+    color: palette.accent.white,
     letterSpacing: 0.3,
   },
 });
