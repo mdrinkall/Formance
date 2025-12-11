@@ -95,7 +95,7 @@ export const styles = StyleSheet.create({
 
   // Text Base
   baseText: {
-    fontWeight: '600',
+    fontWeight: '400',
     textAlign: 'center',
   },
 

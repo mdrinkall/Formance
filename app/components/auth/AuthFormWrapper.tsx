@@ -59,19 +59,21 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: spacing.xxxl,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   title: {
     ...typography.h2,
     color: palette.accent.white,
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.body,
+    fontFamily: 'Inter_300Light',
+    fontWeight: '300',
     color: palette.accent.white,
     opacity: 0.9,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   formContainer: {
     width: '100%',

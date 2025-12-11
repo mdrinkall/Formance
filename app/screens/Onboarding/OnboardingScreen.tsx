@@ -3,18 +3,16 @@
  * Authentic iOS glass-morphism design with background image
  */
 
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   ImageBackground,
-  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { LiquidGlassButton } from '../../components/ui/LiquidGlassButton';
 import { palette } from '../../theme/palette';
 import { typography } from '@/styles';
@@ -27,41 +25,7 @@ type OnboardingScreenProps = {
 };
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
-  const [showAuthButtons, setShowAuthButtons] = useState(false);
-
-  // Animation values
-  const getStartedAnimation = useRef(new Animated.Value(0)).current;
-  const authButtonsAnimation = useRef(new Animated.Value(0)).current;
-
   const handleGetStarted = () => {
-    // Animate Get Started button out
-    Animated.timing(getStartedAnimation, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setShowAuthButtons(true);
-
-      // Animate auth buttons in
-      Animated.timing(authButtonsAnimation, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
-    });
-  };
-
-  const handleAppleSignIn = () => {
-    // TODO: Implement Apple Sign In
-    if (__DEV__) console.log('Apple Sign In - Not implemented');
-  };
-
-  const handleGoogleSignIn = () => {
-    // TODO: Implement Google Sign In
-    if (__DEV__) console.log('Google Sign In - Not implemented');
-  };
-
-  const handleEmailSignIn = () => {
     navigation.navigate('Login');
   };
 
@@ -103,105 +67,18 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
             {/* Button Container */}
             <View style={styles.buttonContainer}>
-              {!showAuthButtons ? (
-                // Get Started Button
-                <Animated.View
-                  style={[
-                    styles.buttonWrapper,
-                    {
-                      opacity: getStartedAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [1, 0],
-                      }),
-                      transform: [
-                        {
-                          translateY: getStartedAnimation.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, 100],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  <LiquidGlassButton
-                    title="Get Started"
-                    onPress={handleGetStarted}
-                    size="large"
-                    variant="secondary"
-                    tintColor="rgba(255, 255, 255, 0.15)"
-                    style={glassButtonStyle}
-                    textStyle={styles.buttonText}
-                    fullWidth
-                  />
-                </Animated.View>
-              ) : (
-                // Auth Buttons
-                <Animated.View
-                  style={[
-                    styles.authButtonsContainer,
-                    {
-                      opacity: authButtonsAnimation,
-                      transform: [
-                        {
-                          translateY: authButtonsAnimation.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [50, 0],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  {/* Apple Sign In */}
-                  <View style={styles.authButtonWrapper}>
-                    <LiquidGlassButton
-                      title="Continue with Apple"
-                      onPress={handleAppleSignIn}
-                      size="large"
-                      variant="secondary"
-                      tintColor="rgba(255, 255, 255, 0.15)"
-                      style={glassButtonStyle}
-                      textStyle={styles.authButtonText}
-                      icon={<Ionicons name="logo-apple" size={24} color={palette.accent.white} />}
-                      iconPosition="left"
-                      fullWidth
-                    />
-                  </View>
-
-                  {/* Google Sign In */}
-                  <View style={styles.authButtonWrapper}>
-                    <LiquidGlassButton
-                      title="Continue with Google"
-                      onPress={handleGoogleSignIn}
-                      size="large"
-                      variant="secondary"
-                      tintColor="rgba(255, 255, 255, 0.15)"
-                      style={glassButtonStyle}
-                      textStyle={styles.authButtonText}
-                      icon={<Ionicons name="logo-google" size={24} color={palette.accent.white} />}
-                      iconPosition="left"
-                      fullWidth
-                    />
-                  </View>
-
-                  {/* Email Sign In */}
-                  <View style={styles.authButtonWrapper}>
-                    <LiquidGlassButton
-                      title="Continue with Email"
-                      onPress={handleEmailSignIn}
-                      size="large"
-                      variant="primary"
-                      tintColor={`${palette.primary[900]}DD`}
-                      style={glassButtonStyle}
-                      textStyle={styles.authButtonText}
-                      icon={<Ionicons name="mail" size={24} color={palette.accent.white} />}
-                      iconPosition="left"
-                      fullWidth
-                    />
-                  </View>
-                </Animated.View>
-              )}
+              <View style={styles.buttonWrapper}>
+                <LiquidGlassButton
+                  title="Get Started"
+                  onPress={handleGetStarted}
+                  size="large"
+                  variant="secondary"
+                  tintColor="rgba(255, 255, 255, 0.15)"
+                  style={glassButtonStyle}
+                  textStyle={styles.buttonText}
+                  fullWidth
+                />
+              </View>
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -266,18 +143,5 @@ const styles = StyleSheet.create({
     ...typography.button,
     color: palette.accent.white,
     letterSpacing: 0.5,
-  },
-  authButtonsContainer: {
-    width: '100%',
-    gap: height * 0.015,
-  },
-  authButtonWrapper: {
-    width: '100%',
-  },
-  authButtonText: {
-    ...typography.button,
-    fontSize: 16,
-    color: palette.accent.white,
-    letterSpacing: 0.3,
   },
 });

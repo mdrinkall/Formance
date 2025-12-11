@@ -174,15 +174,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: palette.border.light,
-    borderRadius: 12,
+    borderRadius: 9999,
     backgroundColor: palette.background.light,
     paddingHorizontal: spacing.base,
     minHeight: 52,
-    ...Platform.select({
-      web: {
-        outlineStyle: 'none',
-      },
-    }),
   },
   inputWrapperError: {
     borderColor: palette.error,
@@ -196,11 +191,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     minHeight: 52,
-    ...Platform.select({
-      web: {
-        outlineStyle: 'none',
-      },
-    }),
+    outlineStyle: 'none',
   },
   iconButton: {
     padding: spacing.xs,

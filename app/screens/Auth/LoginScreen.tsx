@@ -6,8 +6,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../../context/AuthContext';
-import { AuthFormWrapper, EmailInput, PasswordInput, SubmitButton, FormError } from '../../components/auth';
+import { AuthFormWrapper, EmailInput, PasswordInput, SubmitButton, FormError, Divider } from '../../components/auth';
 import { spacing, typography } from '@/styles';
 import { palette } from '@/theme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -65,6 +67,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     }
   };
 
+  const handleGoogleSignIn = () => {
+    // TODO: Implement Google Sign In
+    if (__DEV__) console.log('Google Sign In - Not implemented');
+  };
+
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -76,57 +83,83 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           colors={['rgba(26, 77, 46, 0.85)', 'rgba(15, 20, 25, 0.95)']}
           style={styles.gradient}
         >
-          <AuthFormWrapper
-            title="Welcome Back"
-            subtitle="Sign in to continue to Formance"
-          >
-            {error && <FormError message={error} style={styles.formMessage} />}
-
-            <EmailInput
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                setEmailError('');
-              }}
-              error={emailError}
-              editable={!loading}
-            />
-
-            <PasswordInput
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                setPasswordError('');
-              }}
-              error={passwordError}
-              editable={!loading}
-            />
-
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ForgotPassword')}
-              style={styles.forgotPassword}
-              disabled={loading}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            <SubmitButton
-              title="Sign In"
-              onPress={handleLogin}
-              loading={loading}
-              style={styles.submitButton}
-            />
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
+          <SafeAreaView style={styles.safeArea} edges={['top']}>
+            {/* Header with back button and title */}
+            <View style={styles.header}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Signup')}
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="arrow-back" size={24} color={palette.accent.white} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Login</Text>
+              <View style={styles.headerRight} />
+            </View>
+
+            <AuthFormWrapper
+              title="Let's Sign You In"
+              subtitle="Welcome back, you've been missed!"
+            >
+              {error && <FormError message={error} style={styles.formMessage} />}
+
+              <EmailInput
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setEmailError('');
+                }}
+                error={emailError}
+                editable={!loading}
+              />
+
+              <PasswordInput
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setPasswordError('');
+                }}
+                error={passwordError}
+                editable={!loading}
+              />
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ForgotPassword')}
+                style={styles.forgotPassword}
                 disabled={loading}
               >
-                <Text style={styles.footerLink}>Sign Up</Text>
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
-            </View>
-          </AuthFormWrapper>
+
+              <SubmitButton
+                title="Sign In"
+                onPress={handleLogin}
+                loading={loading}
+                style={styles.submitButton}
+              />
+
+              <Divider text="OR" style={styles.divider} />
+
+              <TouchableOpacity
+                onPress={handleGoogleSignIn}
+                style={styles.googleButton}
+                disabled={loading}
+              >
+                <Ionicons name="logo-google" size={20} color={palette.accent.white} style={styles.googleIcon} />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </TouchableOpacity>
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>Don't have an account? </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Signup')}
+                  disabled={loading}
+                >
+                  <Text style={styles.footerLink}>Sign Up</Text>
+                </TouchableOpacity>
+              </View>
+            </AuthFormWrapper>
+          </SafeAreaView>
         </LinearGradient>
       </ImageBackground>
     </View>
@@ -148,6 +181,30 @@ const styles = StyleSheet.create({
     width,
     height,
   },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    ...typography.h4,
+    color: palette.accent.white,
+    fontWeight: '400',
+  },
+  headerRight: {
+    width: 40,
+  },
   formMessage: {
     marginBottom: spacing.lg,
   },
@@ -164,6 +221,27 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: spacing.base,
+  },
+  divider: {
+    marginVertical: spacing.lg,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 9999,
+    height: 52,
+    paddingHorizontal: spacing.xl,
+  },
+  googleIcon: {
+    marginRight: spacing.sm,
+  },
+  googleButtonText: {
+    ...typography.button,
+    color: palette.accent.white,
   },
   footer: {
     flexDirection: 'row',

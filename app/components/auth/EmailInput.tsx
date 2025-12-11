@@ -15,7 +15,7 @@ interface EmailInputProps extends TextInputProps {
 }
 
 export const EmailInput: React.FC<EmailInputProps> = ({
-  label = 'Email',
+  label = 'Email Address',
   error,
   style,
   ...props
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: palette.border.light,
-    borderRadius: 12,
+    borderRadius: 9999,
     backgroundColor: palette.background.light,
     paddingHorizontal: spacing.base,
     height: 52,
@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     flex: 1,
     height: '100%',
+    outlineStyle: 'none',
   },
   errorText: {
     ...typography.caption,

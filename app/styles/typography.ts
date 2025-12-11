@@ -21,10 +21,11 @@ export const fontSize = {
 
 // Font weights
 export const fontWeight = {
+  light: '300',
   normal: '400',
   medium: '500',
-  semibold: '600',
-  bold: '700',
+  semibold: '500',
+  bold: '500',
 } as const;
 
 // Line heights
@@ -36,37 +37,37 @@ export const lineHeight = {
 
 // Typography presets - ready-to-use text styles
 export const typography: Record<string, TextStyle> = {
-  // Headings - Modern, bold, professional
+  // Headings - Modern, light, professional
   h1: {
     fontSize: fontSize['5xl'],
-    fontWeight: fontWeight.bold,
+    fontWeight: fontWeight.normal,
     lineHeight: fontSize['5xl'] * lineHeight.tight,
     color: palette.text.light.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: -0.5,
   },
   h2: {
     fontSize: fontSize['4xl'],
-    fontWeight: fontWeight.bold,
+    fontWeight: fontWeight.normal,
     lineHeight: fontSize['4xl'] * lineHeight.tight,
     color: palette.text.light.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: -0.5,
   },
   h3: {
     fontSize: fontSize['3xl'],
-    fontWeight: fontWeight.semibold,
+    fontWeight: fontWeight.normal,
     lineHeight: fontSize['3xl'] * lineHeight.tight,
     color: palette.text.light.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: -0.3,
   },
   h4: {
     fontSize: fontSize['2xl'],
-    fontWeight: fontWeight.semibold,
+    fontWeight: fontWeight.normal,
     lineHeight: fontSize['2xl'] * lineHeight.normal,
     color: palette.text.light.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: -0.2,
   },
 
@@ -76,7 +77,7 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.base * lineHeight.normal,
     color: palette.text.light.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: 0.2,
   },
   bodyLarge: {
@@ -84,7 +85,7 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.lg * lineHeight.normal,
     color: palette.text.light.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: 0.2,
   },
   bodySmall: {
@@ -92,7 +93,7 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.sm * lineHeight.normal,
     color: palette.text.light.secondary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: 0.1,
   },
 
@@ -102,15 +103,15 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.xs * lineHeight.normal,
     color: palette.text.light.secondary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: 0.3,
   },
   button: {
-    fontSize: fontSize.base,
-    fontWeight: fontWeight.semibold,
-    lineHeight: fontSize.base * lineHeight.tight,
+    fontSize: 15,
+    fontWeight: fontWeight.normal,
+    lineHeight: 15 * lineHeight.tight,
     color: palette.accent.white,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: 0.5,
   },
   label: {
@@ -118,25 +119,25 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.medium,
     lineHeight: fontSize.sm * lineHeight.normal,
     color: palette.text.light.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_500Medium',
     letterSpacing: 0.3,
   },
 
   // Dark variants (for dark backgrounds)
   h1Dark: {
     fontSize: fontSize['5xl'],
-    fontWeight: fontWeight.bold,
+    fontWeight: fontWeight.normal,
     lineHeight: fontSize['5xl'] * lineHeight.tight,
     color: palette.text.dark.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: -0.5,
   },
   h2Dark: {
     fontSize: fontSize['4xl'],
-    fontWeight: fontWeight.bold,
+    fontWeight: fontWeight.normal,
     lineHeight: fontSize['4xl'] * lineHeight.tight,
     color: palette.text.dark.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: -0.5,
   },
   bodyDark: {
@@ -144,7 +145,7 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: fontWeight.normal,
     lineHeight: fontSize.base * lineHeight.normal,
     color: palette.text.dark.primary,
-    fontFamily: 'System',
+    fontFamily: 'Inter_400Regular',
     letterSpacing: 0.2,
   },
 };

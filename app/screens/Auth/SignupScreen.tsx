@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Dimensions, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../../context/AuthContext';
 import { AuthFormWrapper, EmailInput, PasswordInput, SubmitButton, FormError, FormSuccess } from '../../components/auth';
@@ -105,10 +106,24 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
           colors={['rgba(26, 77, 46, 0.85)', 'rgba(15, 20, 25, 0.95)']}
           style={styles.gradient}
         >
-          <AuthFormWrapper
-            title="Create Account"
-            subtitle="Join Formance and start tracking your game"
-          >
+          <SafeAreaView style={styles.safeArea} edges={['top']}>
+            {/* Header with back button and title */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="arrow-back" size={24} color={palette.accent.white} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Register</Text>
+              <View style={styles.headerRight} />
+            </View>
+
+            <AuthFormWrapper
+              title="Create Account"
+              subtitle="Join Formance and start tracking your game"
+            >
             {error && <FormError message={error} style={styles.formMessage} />}
             {success && <FormSuccess message={success} style={styles.formMessage} />}
 
@@ -189,6 +204,7 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
               </TouchableOpacity>
             </View>
           </AuthFormWrapper>
+          </SafeAreaView>
         </LinearGradient>
       </ImageBackground>
     </View>
@@ -210,6 +226,30 @@ const styles = StyleSheet.create({
     width,
     height,
   },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    ...typography.h4,
+    color: palette.accent.white,
+    fontWeight: '400',
+  },
+  headerRight: {
+    width: 40,
+  },
   formMessage: {
     marginBottom: spacing.lg,
   },
@@ -226,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: palette.border.light,
-    borderRadius: 12,
+    borderRadius: 9999,
     backgroundColor: palette.background.light,
     paddingHorizontal: spacing.base,
     height: 52,
@@ -242,6 +282,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     flex: 1,
     height: '100%',
+    outlineStyle: 'none',
   },
   errorText: {
     ...typography.caption,

@@ -45,7 +45,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
 const styles = StyleSheet.create({
   button: {
     backgroundColor: palette.primary[900],
-    borderRadius: 12,
+    borderRadius: 9999,
     height: 52,
     justifyContent: 'center',
     alignItems: 'center',
