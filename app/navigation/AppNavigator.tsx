@@ -11,7 +11,6 @@ import { SocialNavigator } from './SocialNavigator';
 import { ScoreNavigator } from './ScoreNavigator';
 import AnalysisScreen from '../screens/Analysis/AnalysisScreen';
 import DashboardScreen from '../screens/Dashboard/DashboardScreen';
-import SettingsScreen from '../screens/Settings/SettingsScreen';
 import PaymentsScreen from '../screens/Payments/PaymentsScreen';
 
 const Stack = createStackNavigator();
@@ -24,7 +23,6 @@ export const AppNavigator: React.FC = () => {
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Social" component={SocialNavigator} />
       <Stack.Screen name="Score" component={ScoreNavigator} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Payments" component={PaymentsScreen} />
     </Stack.Navigator>
   );

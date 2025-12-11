@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,8 +17,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
-
-const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   const { signIn } = useAuthContext();
@@ -84,23 +82,34 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           style={styles.gradient}
         >
           <SafeAreaView style={styles.safeArea} edges={['top']}>
-            {/* Header with back button and title */}
-            <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.backButton}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Ionicons name="arrow-back" size={24} color={palette.accent.white} />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Login</Text>
-              <View style={styles.headerRight} />
-            </View>
-
-            <AuthFormWrapper
-              title="Let's Sign You In"
-              subtitle="Welcome back, you've been missed!"
+            <KeyboardAvoidingView
+              style={styles.keyboardView}
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Header with back button and title */}
+                <View style={styles.header}>
+                  <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons name="arrow-back" size={24} color={palette.accent.white} />
+                  </TouchableOpacity>
+                  <Text style={styles.headerTitle}>Login</Text>
+                  <View style={styles.headerRight} />
+                </View>
+
+                <AuthFormWrapper
+                  title="Let's Sign You In"
+                  subtitle="Welcome back, you've been missed!"
+                >
               {error && <FormError message={error} style={styles.formMessage} />}
 
               <EmailInput
@@ -158,7 +167,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                   <Text style={styles.footerLink}>Sign Up</Text>
                 </TouchableOpacity>
               </View>
-            </AuthFormWrapper>
+                </AuthFormWrapper>
+              </ScrollView>
+            </KeyboardAvoidingView>
           </SafeAreaView>
         </LinearGradient>
       </ImageBackground>
@@ -173,16 +184,45 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     flex: 1,
-    width,
-    height,
+    width: '100%',
   },
   gradient: {
     flex: 1,
-    width,
-    height,
+    width: '100%',
   },
   safeArea: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        height: '100vh',
+        overflow: 'hidden',
+      },
+    }),
+  },
+  keyboardView: {
+    flex: 1,
+    ...Platform.select({
+      web: {
+        height: '100%',
+      },
+    }),
+  },
+  scrollView: {
+    flex: 1,
+    ...Platform.select({
+      web: {
+        height: '100%',
+        overflow: 'auto',
+      },
+    }),
+  },
+  scrollContent: {
+    paddingBottom: spacing.xxxl,
+    ...Platform.select({
+      web: {
+        minHeight: '100%',
+      },
+    }),
   },
   header: {
     flexDirection: 'row',

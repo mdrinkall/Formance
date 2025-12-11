@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, ViewProps, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ViewProps } from 'react-native';
 import { spacing, typography } from '@/styles';
 import { palette } from '@/theme';
 
@@ -22,37 +22,19 @@ export const AuthFormWrapper: React.FC<AuthFormWrapperProps> = ({
   ...props
 }) => {
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardView}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={[styles.container, style]} {...props}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-          </View>
-          <View style={styles.formContainer}>
-            {children}
-          </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <View style={[styles.container, style]} {...props}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{title}</Text>
+        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      </View>
+      <View style={styles.formContainer}>
+        {children}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
   container: {
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xxxl,

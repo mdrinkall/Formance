@@ -18,6 +18,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from './app/context/AuthContext';
 import { ThemeProvider } from './app/context/ThemeContext';
 import { UserProvider } from './app/context/UserContext';
+import { NotificationsProvider } from './app/context/NotificationsContext';
 import { RootNavigator } from './app/navigation/RootNavigator';
 
 // Prevent auto-hiding splash screen
@@ -46,8 +47,10 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <UserProvider>
-            <RootNavigator />
-            <StatusBar style="auto" />
+            <NotificationsProvider>
+              <RootNavigator />
+              <StatusBar style="auto" />
+            </NotificationsProvider>
           </UserProvider>
         </AuthProvider>
       </ThemeProvider>

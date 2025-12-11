@@ -1,10 +1,12 @@
 /**
  * Input component
- * Reusable text input with NativeWind styling
+ * Reusable text input with consistent styling
  */
 
 import React from 'react';
-import { View, TextInput, Text, TextInputProps } from 'react-native';
+import { View, TextInput, Text, TextInputProps, StyleSheet, Platform } from 'react-native';
+import { spacing, typography } from '@/styles';
+import { palette } from '@/theme/palette';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -16,19 +18,57 @@ export const Input: React.FC<InputProps> = ({
   label,
   error,
   helperText,
+  style,
   ...props
 }) => {
-  // TODO: Implement input styling with NativeWind classes
   return (
-    <View className="mb-4">
-      {label && <Text className="mb-2 text-gray-700 font-medium">{label}</Text>}
+    <View style={styles.container}>
+      {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
-        className="border border-gray-300 rounded-lg px-4 py-3 text-base"
-        placeholderTextColor="#9CA3AF"
+        style={[styles.input, error && styles.inputError, style]}
+        placeholderTextColor={palette.text.light.secondary}
         {...props}
       />
-      {error && <Text className="mt-1 text-red-500 text-sm">{error}</Text>}
-      {helperText && !error && <Text className="mt-1 text-gray-500 text-sm">{helperText}</Text>}
+      {error && <Text style={styles.errorText}>{error}</Text>}
+      {helperText && !error && <Text style={styles.helperText}>{helperText}</Text>}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: spacing.base,
+  },
+  label: {
+    ...typography.label,
+    marginBottom: spacing.sm,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: palette.border.light,
+    borderRadius: 8,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    ...typography.body,
+    backgroundColor: palette.accent.white,
+    minHeight: 44, // Touch target
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+      },
+    }),
+  },
+  inputError: {
+    borderColor: palette.error,
+  },
+  errorText: {
+    ...typography.caption,
+    color: palette.error,
+    marginTop: spacing.xs,
+  },
+  helperText: {
+    ...typography.caption,
+    color: palette.text.light.secondary,
+    marginTop: spacing.xs,
+  },
+});

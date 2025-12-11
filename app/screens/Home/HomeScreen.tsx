@@ -44,7 +44,7 @@ function EmptyStateView({ username }: { username: string }) {
     <>
       {/* Section 1: Welcome Block */}
       <Card style={styles.welcomeCard}>
-        <Text style={styles.welcomeTitle}>Hey, {username}</Text>
+        <Text style={styles.welcomeTitle}>Welcome back {username}</Text>
       </Card>
 
       {/* Section 2: Quick Actions */}
@@ -102,22 +102,28 @@ function EmptyStateView({ username }: { username: string }) {
         ))}
       </ScrollView>
 
-      {/* Section 5: Suggested Drills (Empty) */}
-      <Card style={styles.emptyCard}>
-        <Ionicons name="clipboard-outline" size={48} color={palette.text.light.secondary} />
-        <Text style={styles.emptyTitle}>No drills yet</Text>
-      </Card>
-
-      {/* Section 6: Community Teaser */}
-      <Card style={styles.communityCard}>
-        <Text style={styles.communityTitle}>Join the Community →</Text>
-      </Card>
-
-      {/* Section 7: Empty History */}
-      <Card style={styles.emptyCard}>
-        <Ionicons name="bar-chart-outline" size={48} color={palette.text.light.secondary} />
-        <Text style={styles.emptyTitle}>No swings yet</Text>
-      </Card>
+      {/* Section 5: Subscription Banner */}
+      <TouchableOpacity
+        style={styles.subscriptionBanner}
+        accessibilityRole="button"
+        accessibilityLabel="Subscribe to premium"
+        activeOpacity={0.9}
+      >
+        <ImageBackground
+          source={{ uri: 'https://twpouulzcwhhxhdilnbj.supabase.co/storage/v1/object/public/assets/widgets/record-your-swing.jpg' }}
+          style={styles.subscriptionImageBackground}
+          imageStyle={styles.subscriptionImage}
+        >
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.6)']}
+            locations={[0.5, 1]}
+            style={styles.subscriptionOverlay}
+          />
+          <View style={styles.subscriptionTextContainer}>
+            <Text style={styles.subscriptionTitle}>Go Premium</Text>
+          </View>
+        </ImageBackground>
+      </TouchableOpacity>
     </>
   );
 }
@@ -331,10 +337,11 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: 0,
     paddingBottom: 0,
+    paddingLeft: 0,
     backgroundColor: palette.accent.white,
   },
   welcomeTitle: {
-    ...typography.h3,
+    ...typography.h4,
     textAlign: 'left',
   },
   welcomeSubtitle: {
@@ -422,7 +429,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginVertical: spacing.xl,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 0,
   },
   quickAction: {
     alignItems: 'center',
@@ -463,6 +470,8 @@ const styles = StyleSheet.create({
   // Suggested Users
   suggestedScrollContent: {
     paddingRight: spacing.base,
+    paddingVertical: spacing.sm,
+    paddingLeft: spacing.sm,
   },
   suggestedUserCard: {
     width: 140,
@@ -473,18 +482,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: palette.neutral[200],
+    flex: 1,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 6,
+        elevation: 2,
       },
       web: {
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
       },
     }),
   },
@@ -513,11 +523,59 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '100%',
     alignItems: 'center',
+    marginTop: 'auto',
   },
   followButtonText: {
     ...typography.label,
     color: palette.accent.white,
     fontSize: 12,
+  },
+
+  // Subscription Banner
+  subscriptionBanner: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.base,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+      web: {
+        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+        cursor: 'pointer',
+      },
+    }),
+  },
+  subscriptionImageBackground: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    justifyContent: 'flex-end',
+  },
+  subscriptionImage: {
+    borderRadius: 16,
+  },
+  subscriptionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  subscriptionTextContainer: {
+    padding: spacing.base,
+    zIndex: 1,
+  },
+  subscriptionTitle: {
+    ...typography.h3,
+    color: palette.accent.white,
+    marginBottom: spacing.xs,
+  },
+  subscriptionDescription: {
+    ...typography.body,
+    color: palette.accent.white,
   },
 
   // Empty States

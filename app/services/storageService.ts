@@ -1,10 +1,10 @@
 /**
  * Storage service
  * Handles file uploads and downloads to Supabase Storage
- * TODO: Implement actual Supabase Storage operations
  */
 
 import { supabase } from './supabase';
+import { decode } from 'base64-arraybuffer';
 
 /**
  * Upload a video file
@@ -13,34 +13,100 @@ import { supabase } from './supabase';
  * @returns URL of uploaded file
  */
 export const uploadVideo = async (file: any, userId: string): Promise<string> => {
-  // TODO: Implement video upload to Supabase Storage
-  // const fileName = `${userId}/${Date.now()}.mp4`;
-  // const { data, error } = await supabase.storage
-  //   .from('swing-videos')
-  //   .upload(fileName, file);
-  throw new Error('Not implemented');
+  const fileName = `${userId}/${Date.now()}.mp4`;
+  const { data, error } = await supabase.storage
+    .from('recordings')
+    .upload(fileName, file);
+
+  if (error) throw error;
+
+  const { data: publicUrlData } = supabase.storage
+    .from('recordings')
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
 };
 
 /**
  * Upload an image file
- * @param file - File to upload
+ * @param file - File to upload (can be base64 string, blob, or File object)
  * @param userId - User ID for file organization
+ * @param bucket - Storage bucket name (default: 'images')
  * @returns URL of uploaded file
  */
-export const uploadImage = async (file: any, userId: string): Promise<string> => {
-  // TODO: Implement image upload to Supabase Storage
-  throw new Error('Not implemented');
+export const uploadImage = async (
+  file: string | Blob | File,
+  userId: string,
+  bucket: string = 'images'
+): Promise<string> => {
+  const timestamp = Date.now();
+  const fileName = `${userId}/${timestamp}.jpg`;
+
+  let fileToUpload: ArrayBuffer | Blob | File;
+
+  // Handle base64 string (common for mobile image pickers)
+  if (typeof file === 'string') {
+    // Remove data URL prefix if present
+    const base64Data = file.replace(/^data:image\/\w+;base64,/, '');
+    fileToUpload = decode(base64Data);
+  } else {
+    fileToUpload = file;
+  }
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(fileName, fileToUpload, {
+      contentType: 'image/jpeg',
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  const { data: publicUrlData } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
 };
 
 /**
  * Upload a profile avatar
- * @param file - File to upload
+ * @param file - File to upload (can be base64 string, blob, or File object)
  * @param userId - User ID
  * @returns URL of uploaded avatar
  */
-export const uploadAvatar = async (file: any, userId: string): Promise<string> => {
-  // TODO: Implement avatar upload to Supabase Storage
-  throw new Error('Not implemented');
+export const uploadAvatar = async (
+  file: string | Blob | File,
+  userId: string
+): Promise<string> => {
+  const timestamp = Date.now();
+  const fileName = `${userId}/avatar_${timestamp}.jpg`;
+
+  let fileToUpload: ArrayBuffer | Blob | File;
+
+  // Handle base64 string (common for mobile image pickers)
+  if (typeof file === 'string') {
+    // Remove data URL prefix if present
+    const base64Data = file.replace(/^data:image\/\w+;base64,/, '');
+    fileToUpload = decode(base64Data);
+  } else {
+    fileToUpload = file;
+  }
+
+  const { data, error } = await supabase.storage
+    .from('profiles')
+    .upload(fileName, fileToUpload, {
+      contentType: 'image/jpeg',
+      upsert: true, // Allow overwriting old avatars
+    });
+
+  if (error) throw error;
+
+  const { data: publicUrlData } = supabase.storage
+    .from('profiles')
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
 };
 
 /**
@@ -50,10 +116,8 @@ export const uploadAvatar = async (file: any, userId: string): Promise<string> =
  * @returns Public URL
  */
 export const getPublicUrl = (bucket: string, path: string): string => {
-  // TODO: Implement get public URL
-  // const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-  // return data.publicUrl;
-  throw new Error('Not implemented');
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
 };
 
 /**
@@ -62,9 +126,8 @@ export const getPublicUrl = (bucket: string, path: string): string => {
  * @param path - File path
  */
 export const deleteFile = async (bucket: string, path: string): Promise<void> => {
-  // TODO: Implement file deletion
-  // const { error } = await supabase.storage.from(bucket).remove([path]);
-  throw new Error('Not implemented');
+  const { error } = await supabase.storage.from(bucket).remove([path]);
+  if (error) throw error;
 };
 
 /**
@@ -74,7 +137,7 @@ export const deleteFile = async (bucket: string, path: string): Promise<void> =>
  * @returns File blob
  */
 export const downloadFile = async (bucket: string, path: string): Promise<Blob> => {
-  // TODO: Implement file download
-  // const { data, error } = await supabase.storage.from(bucket).download(path);
-  throw new Error('Not implemented');
+  const { data, error } = await supabase.storage.from(bucket).download(path);
+  if (error) throw error;
+  return data;
 };
