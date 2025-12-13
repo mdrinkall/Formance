@@ -3,12 +3,22 @@
  * Display golf swing analysis results
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity, Modal, Linking } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { Video, ResizeMode } from 'expo-av';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedProps,
+  withTiming,
+  withDelay,
+  withSequence,
+  Easing,
+  runOnJS,
+} from 'react-native-reanimated';
 import { Button } from '../../components/ui/Button';
 import { AnalysisStackParamList } from '../../types/analysis';
 import { spacing, typography } from '../../styles';
@@ -38,7 +48,114 @@ const getCategoryTitle = (key: string): string => {
   return titles[key] || key;
 };
 
-// Radial Arc Component
+// Animated Circle component
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+// Animated Category Card Component
+interface AnimatedCategoryCardProps {
+  categoryKey: string;
+  value: any;
+  anim: {
+    opacity: Animated.SharedValue<number>;
+    translateY: Animated.SharedValue<number>;
+    progressWidth: Animated.SharedValue<number>;
+    yPosition: number;
+  };
+  onPress: () => void;
+  onLayout: (y: number) => void;
+}
+
+const AnimatedCategoryCard: React.FC<AnimatedCategoryCardProps> = ({
+  categoryKey,
+  value,
+  anim,
+  onPress,
+  onLayout,
+}) => {
+  const categoryCardAnimStyle = useAnimatedStyle(() => ({
+    opacity: anim.opacity.value,
+    transform: [{ translateY: anim.translateY.value }],
+  }));
+
+  const progressBarAnimStyle = useAnimatedStyle(() => ({
+    width: `${anim.progressWidth.value}%`,
+  }));
+
+  const CATEGORY_COLORS: Record<string, string> = {
+    setup_posture: '#10B981',
+    backswing_mechanics: '#3B82F6',
+    downswing_impact: '#F59E0B',
+    balance_finish: '#EC4899',
+    consistency_athleticism: '#8B5CF6',
+  };
+
+  return (
+    <Animated.View
+      style={categoryCardAnimStyle}
+      onLayout={(event) => {
+        const layout = event.nativeEvent.layout;
+        onLayout(layout.y);
+      }}
+    >
+      <TouchableOpacity
+        style={styles.categoryCard}
+        onPress={onPress}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={`${getCategoryTitle(categoryKey)}, score ${value.score} out of 20`}
+      >
+        <View style={styles.categoryContent}>
+          <View style={styles.categoryHeaderRow}>
+            <View style={[styles.categoryDot, { backgroundColor: CATEGORY_COLORS[categoryKey] }]} />
+            <Text style={styles.categoryTitle}>{getCategoryTitle(categoryKey)}</Text>
+            <Text style={styles.categoryScore}>{value.score}</Text>
+          </View>
+
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarBackground}>
+              <Animated.View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    backgroundColor: CATEGORY_COLORS[categoryKey]
+                  },
+                  progressBarAnimStyle
+                ]}
+              />
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+// Animated Bullet Item Component
+interface AnimatedBulletProps {
+  text: string;
+  color: string;
+  opacity: Animated.SharedValue<number>;
+  iconScale: Animated.SharedValue<number>;
+}
+
+const AnimatedBullet: React.FC<AnimatedBulletProps> = ({ text, color, opacity, iconScale }) => {
+  const bulletStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  const dotStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.bulletItem, bulletStyle]}>
+      <Animated.View style={[styles.bulletDot, { backgroundColor: color }, dotStyle]} />
+      <Text style={styles.bulletText}>{text}</Text>
+    </Animated.View>
+  );
+};
+
+// Radial Arc Component with Animation
 interface RadialArcProps {
   score: number;
   maxScore: number;
@@ -46,24 +163,32 @@ interface RadialArcProps {
   total: number;
   radius: number;
   color: string;
+  animProgress: Animated.SharedValue<number>;
 }
 
-const RadialArc: React.FC<RadialArcProps> = ({ score, maxScore, index, total, radius, color }) => {
+const RadialArc: React.FC<RadialArcProps> = ({ score, maxScore, index, total, radius, color, animProgress }) => {
   const strokeWidth = 10;
   const circumference = 2 * Math.PI * radius;
   const arcLength = (circumference / total) - 8; // -8 for spacing
-  const progress = (score / maxScore) * arcLength;
+  const targetProgress = (score / maxScore) * arcLength;
   const rotation = (360 / total) * index;
 
+  const animatedProps = useAnimatedProps(() => {
+    const currentProgress = animProgress.value * targetProgress;
+    return {
+      strokeDasharray: `${currentProgress} ${circumference}`,
+    };
+  });
+
   return (
-    <Circle
+    <AnimatedCircle
       cx="50%"
       cy="50%"
       r={radius}
       stroke={color}
       strokeWidth={strokeWidth}
       fill="none"
-      strokeDasharray={`${progress} ${circumference}`}
+      animatedProps={animatedProps}
       strokeDashoffset={-rotation * (circumference / 360)}
       strokeLinecap="round"
       opacity={0.9}
@@ -75,6 +200,197 @@ export default function ResultsScreen({ route, navigation }: Props) {
   const { videoUrl, selectedClub, shotShape } = route.params;
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const videoRef = useRef<Video>(null);
+
+  // Get categories first (needed for animations initialization)
+  const categories = Object.entries(mockAnalysis.category_scores);
+
+  // Hero score entry animations
+  const heroScale = useSharedValue(0.92);
+  const heroOpacity = useSharedValue(0);
+  const scoreOpacity = useSharedValue(0);
+  const scoreTranslateY = useSharedValue(8);
+  const labelOpacity = useSharedValue(0);
+  const arcProgress = useSharedValue(0);
+
+  // All content fades in after hero animation (no scroll-based)
+  const contentOpacity = useSharedValue(0);
+
+  // Category cards animation (staggered for visual interest)
+  const categoryAnimations = useRef(
+    categories.map(() => ({
+      opacity: useSharedValue(0),
+      translateY: useSharedValue(12),
+      progressWidth: useSharedValue(0),
+    }))
+  ).current;
+
+  // Bullet points animation (staggered)
+  const goodBulletAnimations = useRef(
+    mockAnalysis.what_was_good.map(() => ({
+      opacity: useSharedValue(0),
+      iconScale: useSharedValue(0.9),
+    }))
+  ).current;
+
+  const badBulletAnimations = useRef(
+    mockAnalysis.what_was_bad.map(() => ({
+      opacity: useSharedValue(0),
+      iconScale: useSharedValue(0.9),
+    }))
+  ).current;
+
+  useEffect(() => {
+    // Phase 1: Container appears (300ms)
+    heroOpacity.value = withTiming(1, {
+      duration: 300,
+      easing: Easing.out(Easing.quad),
+    });
+
+    // Phase 2: Circle scales up and arcs draw (500-700ms)
+    heroScale.value = withDelay(
+      300,
+      withTiming(1, {
+        duration: 600,
+        easing: Easing.out(Easing.quad),
+      })
+    );
+
+    // Arcs draw sequentially with stagger
+    arcProgress.value = withDelay(
+      400,
+      withTiming(1, {
+        duration: 700,
+        easing: Easing.out(Easing.quad),
+      })
+    );
+
+    // Phase 3: Score number fades in with upward motion (the verdict moment)
+    scoreOpacity.value = withDelay(
+      900,
+      withTiming(1, {
+        duration: 400,
+        easing: Easing.out(Easing.quad),
+      })
+    );
+
+    scoreTranslateY.value = withDelay(
+      900,
+      withTiming(0, {
+        duration: 400,
+        easing: Easing.out(Easing.quad),
+      })
+    );
+
+    // Phase 4: Labels fade in (150-250ms after score)
+    labelOpacity.value = withDelay(
+      1200,
+      withTiming(1, {
+        duration: 250,
+        easing: Easing.out(Easing.quad),
+      })
+    );
+
+    // Phase 5: All content (titles, dividers, sections) fade in after hero is complete
+    contentOpacity.value = withDelay(
+      1500,
+      withTiming(1, {
+        duration: 400,
+        easing: Easing.out(Easing.quad),
+      })
+    );
+
+    // Category cards with stagger (starting at 1600ms)
+    categoryAnimations.forEach((anim, index) => {
+      const delay = 1600 + index * 80;
+
+      anim.opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 350,
+          easing: Easing.out(Easing.quad),
+        })
+      );
+
+      anim.translateY.value = withDelay(
+        delay,
+        withTiming(0, {
+          duration: 350,
+          easing: Easing.out(Easing.quad),
+        })
+      );
+
+      const progressPercent = (categories[index][1].score / 20) * 100;
+      anim.progressWidth.value = withDelay(
+        delay + 120,
+        withTiming(progressPercent, {
+          duration: 600,
+          easing: Easing.out(Easing.quad),
+        })
+      );
+    });
+
+    // Good bullets with stagger (starting at 1700ms)
+    goodBulletAnimations.forEach((anim, index) => {
+      const delay = 1700 + index * 70;
+
+      anim.opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 300,
+          easing: Easing.out(Easing.quad),
+        })
+      );
+
+      anim.iconScale.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 300,
+          easing: Easing.out(Easing.quad),
+        })
+      );
+    });
+
+    // Bad bullets with stagger (starting at 1700ms)
+    badBulletAnimations.forEach((anim, index) => {
+      const delay = 1700 + index * 70;
+
+      anim.opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 300,
+          easing: Easing.out(Easing.quad),
+        })
+      );
+
+      anim.iconScale.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: 300,
+          easing: Easing.out(Easing.quad),
+        })
+      );
+    });
+  }, []);
+
+  // Animated styles for hero section
+  const heroContainerStyle = useAnimatedStyle(() => ({
+    opacity: heroOpacity.value,
+    transform: [{ scale: heroScale.value }],
+  }));
+
+  const scoreStyle = useAnimatedStyle(() => ({
+    opacity: scoreOpacity.value,
+    transform: [{ translateY: scoreTranslateY.value }],
+  }));
+
+  const labelStyle = useAnimatedStyle(() => ({
+    opacity: labelOpacity.value,
+  }));
+
+  // Animated styles for all content (titles, dividers, sections)
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+  }));
 
   const handleDone = () => {
     navigation.navigate('VideoUpload');
@@ -92,7 +408,6 @@ export default function ResultsScreen({ route, navigation }: Props) {
     }
   };
 
-  const categories = Object.entries(mockAnalysis.category_scores);
   const selectedCategoryData = selectedCategory
     ? mockAnalysis.category_scores[selectedCategory as keyof typeof mockAnalysis.category_scores]
     : null;
@@ -108,7 +423,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
           {/* Hero Score Section */}
           <View style={styles.heroSection}>
             {/* Circular Score with Radial Indicators */}
-            <View style={styles.scoreCircleContainer}>
+            <Animated.View style={[styles.scoreCircleContainer, heroContainerStyle]}>
               <Svg height={260} width={260} style={styles.svg}>
                 {/* Background circle */}
                 <Circle
@@ -130,19 +445,24 @@ export default function ResultsScreen({ route, navigation }: Props) {
                     total={categories.length}
                     radius={105}
                     color={CATEGORY_COLORS[key]}
+                    animProgress={arcProgress}
                   />
                 ))}
               </Svg>
 
               {/* Score content overlaid on SVG */}
               <View style={styles.scoreContent}>
-                <Text style={styles.scoreNumber}>{mockAnalysis.overall_score}</Text>
-                <Text style={styles.scoreLabel}>{mockAnalysis.skill_level}</Text>
+                <Animated.Text style={[styles.scoreNumber, scoreStyle]}>
+                  {mockAnalysis.overall_score}
+                </Animated.Text>
+                <Animated.Text style={[styles.scoreLabel, labelStyle]}>
+                  {mockAnalysis.skill_level}
+                </Animated.Text>
               </View>
-            </View>
+            </Animated.View>
 
             {/* Subtext row */}
-            <View style={styles.subtextRow}>
+            <Animated.View style={[styles.subtextRow, labelStyle]}>
               <View style={styles.subtextItem}>
                 <Ionicons name="golf" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
                 <Text style={styles.subtextText}>{mockAnalysis.club_used}</Text>
@@ -152,129 +472,109 @@ export default function ResultsScreen({ route, navigation }: Props) {
                 <Ionicons name="analytics" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
                 <Text style={styles.subtextText}>{mockAnalysis.shot_shape}</Text>
               </View>
-            </View>
+            </Animated.View>
           </View>
 
           {/* Section Divider */}
-          <View style={styles.sectionDivider} />
+          <Animated.View style={[styles.sectionDivider, contentStyle]} />
 
           {/* Swing Video Card */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Swing</Text>
-            <TouchableOpacity
-              style={styles.videoCard}
-              activeOpacity={1}
-              onPress={handlePlayVideo}
-            >
-              <Video
-                ref={videoRef}
-                source={{ uri: videoUrl }}
-                style={styles.video}
-                resizeMode={ResizeMode.COVER}
-                shouldPlay={false}
-              />
+            <Animated.Text style={[styles.sectionTitle, contentStyle]}>Your Swing</Animated.Text>
+            <Animated.View style={contentStyle}>
+              <TouchableOpacity
+                style={styles.videoCard}
+                activeOpacity={1}
+                onPress={handlePlayVideo}
+              >
+                <Video
+                  ref={videoRef}
+                  source={{ uri: videoUrl }}
+                  style={styles.video}
+                  resizeMode={ResizeMode.COVER}
+                  shouldPlay={false}
+                />
 
-              {/* Play button overlay - always visible */}
-              <View style={styles.playButtonOverlay}>
-                <View style={styles.playButton}>
-                  <Ionicons name="play" size={40} color={palette.accent.white} />
+                {/* Play button overlay - always visible */}
+                <View style={styles.playButtonOverlay}>
+                  <View style={styles.playButton}>
+                    <Ionicons name="play" size={40} color={palette.accent.white} />
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Animated.View>
           </View>
 
           {/* Section Divider */}
-          <View style={styles.sectionDivider} />
+          <Animated.View style={[styles.sectionDivider, contentStyle]} />
 
           {/* Category Breakdown Cards - Vertical List */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Category Breakdown</Text>
-            {categories.map(([key, value]) => {
-              const progressPercent = (value.score / 20) * 100;
-
-              return (
-                <TouchableOpacity
-                  key={key}
-                  style={styles.categoryCard}
-                  onPress={() => setSelectedCategory(key)}
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${getCategoryTitle(key)}, score ${value.score} out of 20`}
-                >
-                  <View style={styles.categoryContent}>
-                    {/* Top row: dot, title, score */}
-                    <View style={styles.categoryHeaderRow}>
-                      <View style={[styles.categoryDot, { backgroundColor: CATEGORY_COLORS[key] }]} />
-                      <Text style={styles.categoryTitle}>{getCategoryTitle(key)}</Text>
-                      <Text style={styles.categoryScore}>{value.score}</Text>
-                    </View>
-
-                    {/* Progress bar */}
-                    <View style={styles.progressBarContainer}>
-                      <View style={styles.progressBarBackground}>
-                        <View
-                          style={[
-                            styles.progressBarFill,
-                            {
-                              width: `${progressPercent}%`,
-                              backgroundColor: CATEGORY_COLORS[key]
-                            }
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            <Animated.Text style={[styles.sectionTitle, contentStyle]}>Category Breakdown</Animated.Text>
+            {categories.map(([key, value], index) => (
+              <AnimatedCategoryCard
+                key={key}
+                categoryKey={key}
+                value={value}
+                anim={categoryAnimations[index]}
+                onPress={() => setSelectedCategory(key)}
+                onLayout={(y) => {}}
+              />
+            ))}
           </View>
 
           {/* Section Divider */}
-          <View style={styles.sectionDivider} />
+          <Animated.View style={[styles.sectionDivider, contentStyle]} />
 
           {/* What Went Well */}
           <View style={styles.section}>
-            <View style={styles.feedbackHeader}>
+            <Animated.View style={[styles.feedbackHeader, contentStyle]}>
               <Ionicons name="checkmark-circle" size={24} color="#10B981" />
               <Text style={[styles.sectionTitle, styles.inlineTitle]}>What Went Well</Text>
-            </View>
+            </Animated.View>
             <View style={styles.feedbackCard}>
               {mockAnalysis.what_was_good.map((item, index) => (
-                <View key={index} style={styles.bulletItem}>
-                  <View style={[styles.bulletDot, { backgroundColor: '#10B981' }]} />
-                  <Text style={styles.bulletText}>{item}</Text>
-                </View>
+                <AnimatedBullet
+                  key={index}
+                  text={item}
+                  color="#10B981"
+                  opacity={goodBulletAnimations[index].opacity}
+                  iconScale={goodBulletAnimations[index].iconScale}
+                />
               ))}
             </View>
           </View>
 
           {/* What Needs Work */}
           <View style={styles.section}>
-            <View style={styles.feedbackHeader}>
+            <Animated.View style={[styles.feedbackHeader, contentStyle]}>
               <Ionicons name="alert-circle" size={24} color="#F59E0B" />
               <Text style={[styles.sectionTitle, styles.inlineTitle]}>What Needs Work</Text>
-            </View>
+            </Animated.View>
             <View style={styles.feedbackCard}>
               {mockAnalysis.what_was_bad.map((item, index) => (
-                <View key={index} style={styles.bulletItem}>
-                  <View style={[styles.bulletDot, { backgroundColor: '#F59E0B' }]} />
-                  <Text style={styles.bulletText}>{item}</Text>
-                </View>
+                <AnimatedBullet
+                  key={index}
+                  text={item}
+                  color="#F59E0B"
+                  opacity={badBulletAnimations[index].opacity}
+                  iconScale={badBulletAnimations[index].iconScale}
+                />
               ))}
             </View>
           </View>
 
           {/* Section Divider */}
-          <View style={styles.sectionDivider} />
+          <Animated.View style={[styles.sectionDivider, contentStyle]} />
 
           {/* Immediate Focus Section */}
           <View style={styles.section}>
-            <View style={styles.feedbackHeader}>
+            <Animated.View style={[styles.feedbackHeader, contentStyle]}>
               <Ionicons name="flash" size={24} color="#EC4899" />
               <Text style={[styles.sectionTitle, styles.inlineTitle]}>Immediate Focus</Text>
-            </View>
+            </Animated.View>
             {mockAnalysis.immediate_focus.map((focus, index) => (
-              <View key={index} style={styles.focusCard}>
+              <Animated.View key={index} style={[styles.focusCard, contentStyle]}>
                 <Text style={styles.focusIssue}>{focus.issue}</Text>
 
                 <View style={styles.focusSection}>
@@ -292,15 +592,15 @@ export default function ResultsScreen({ route, navigation }: Props) {
                   <Text style={styles.focusCTAText}>View Related Drill</Text>
                   <Ionicons name="arrow-forward" size={16} color={palette.primary[900]} />
                 </TouchableOpacity>
-              </View>
+              </Animated.View>
             ))}
           </View>
 
           {/* Confidence Note */}
-          <View style={styles.confidenceSection}>
+          <Animated.View style={[styles.confidenceSection, contentStyle]}>
             <Ionicons name="information-circle-outline" size={16} color={palette.accent.white} style={{ opacity: 0.5 }} />
             <Text style={styles.confidenceText}>{mockAnalysis.confidence_note}</Text>
-          </View>
+          </Animated.View>
 
           {/* Action Button */}
           <View style={styles.buttonContainer}>
