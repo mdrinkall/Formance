@@ -4,19 +4,47 @@
  * TODO: Implement camera functionality with expo-camera
  */
 
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer } from '../../components/layout/ScreenContainer';
 import { Button } from '../../components/ui/Button';
+import { spacing, typography } from '@/styles';
+import { palette } from '@/theme/palette';
 
 export default function CaptureScreen() {
+  const navigation = useNavigation();
+
+  // Navigate to Analysis screen immediately when this tab is opened
+  useEffect(() => {
+    navigation.navigate('Analysis' as never);
+  }, [navigation]);
+
   return (
     <ScreenContainer>
-      <View className="flex-1 bg-black items-center justify-center">
-        <Text className="text-white text-xl mb-4">Camera View</Text>
-        <Text className="text-gray-400 mb-8">TODO: Implement camera with expo-camera</Text>
-        <Button title="Record Swing" className="bg-red-600 px-8 py-4" />
+      <View style={styles.container}>
+        <Text style={styles.title}>Camera View</Text>
+        <Text style={styles.subtitle}>Redirecting to Analysis...</Text>
       </View>
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: palette.background.dark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  title: {
+    ...typography.h3,
+    color: palette.accent.white,
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    ...typography.body,
+    color: palette.text.dark.secondary,
+  },
+});

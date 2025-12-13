@@ -16,6 +16,7 @@ export const palette = {
     700: '#318850',
     800: '#287744',
     900: '#1A4D2E',  // Dark Royal British Green (main brand color)
+    950: '#0c1f14',  // Near-black dark green
   },
 
   // Secondary colors - Cream Beige

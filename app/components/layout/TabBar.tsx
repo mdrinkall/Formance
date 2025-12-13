@@ -46,8 +46,13 @@ export const TabBar: React.FC<BottomTabBarProps> = ({
             canPreventDefault: true,
           });
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+          if (!event.defaultPrevented) {
+            // Special handling for Record tab - navigate directly to Analysis
+            if (route.name === 'Record') {
+              navigation.navigate('Analysis' as never);
+            } else if (!isFocused) {
+              navigation.navigate(route.name);
+            }
           }
         };
 

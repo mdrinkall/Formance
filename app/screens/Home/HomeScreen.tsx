@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { spacing, typography } from '@/styles';
 import { palette } from '@/theme/palette';
 import { Card } from '../../components/ui/Card';
@@ -16,6 +17,7 @@ import { useAuthContext } from '../../context/AuthContext';
 
 export default function HomeScreen() {
   const { user } = useAuthContext();
+  const navigation = useNavigation();
   const [hasData] = useState(false); // Change to true to see active state
 
   // Extract first name from user metadata or use default
@@ -29,7 +31,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {hasData ? <ActiveUserView username={firstName} /> : <EmptyStateView username={firstName} />}
+        {hasData ? <ActiveUserView username={firstName} navigation={navigation} /> : <EmptyStateView username={firstName} navigation={navigation} />}
 
         {/* Footer Spacer */}
         <View style={styles.footerSpacer} />
@@ -39,7 +41,7 @@ export default function HomeScreen() {
 }
 
 // ==================== EMPTY STATE VIEW ====================
-function EmptyStateView({ username }: { username: string }) {
+function EmptyStateView({ username, navigation }: { username: string; navigation: any }) {
   return (
     <>
       {/* Section 1: Welcome Block */}
@@ -61,6 +63,7 @@ function EmptyStateView({ username }: { username: string }) {
         accessibilityRole="button"
         accessibilityLabel="AI Analysis - Record your swing"
         activeOpacity={0.9}
+        onPress={() => navigation.navigate('Analysis')}
       >
         <ImageBackground
           source={{ uri: 'https://twpouulzcwhhxhdilnbj.supabase.co/storage/v1/object/public/assets/widgets/rich-green-putting.jpg' }}
@@ -129,7 +132,7 @@ function EmptyStateView({ username }: { username: string }) {
 }
 
 // ==================== ACTIVE STATE VIEW ====================
-function ActiveUserView({ username }: { username: string }) {
+function ActiveUserView({ username, navigation }: { username: string; navigation: any }) {
   return (
     <>
       {/* Section 1: Personalized Welcome */}
@@ -165,7 +168,7 @@ function ActiveUserView({ username }: { username: string }) {
         title="Record New Swing"
         variant="primary"
         style={styles.recordCTA}
-        onPress={() => console.log('Record new swing')}
+        onPress={() => navigation.navigate('Analysis')}
       />
 
       {/* Section 4: Personalized Drills */}

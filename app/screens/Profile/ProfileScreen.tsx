@@ -534,13 +534,26 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: palette.accent.white,
+    ...Platform.select({
+      web: {
+        height: '100vh',
+        maxHeight: '100vh',
+      },
+    }),
   },
   container: {
     flex: 1,
+    flexShrink: 1,
+    ...Platform.select({
+      web: {
+        overflow: 'auto',
+      },
+    }),
   },
   contentContainer: {
     paddingHorizontal: spacing.base,
-    paddingBottom: spacing.base,
+    paddingBottom: spacing.massive,
+    flexGrow: 1,
   },
   loadingContainer: {
     flex: 1,

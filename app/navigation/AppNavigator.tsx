@@ -9,7 +9,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { TabNavigator } from './TabNavigator';
 import { SocialNavigator } from './SocialNavigator';
 import { ScoreNavigator } from './ScoreNavigator';
-import AnalysisScreen from '../screens/Analysis/AnalysisScreen';
+import { AnalysisNavigator } from './AnalysisNavigator';
 import DashboardScreen from '../screens/Dashboard/DashboardScreen';
 import PaymentsScreen from '../screens/Payments/PaymentsScreen';
 
@@ -19,7 +19,7 @@ export const AppNavigator: React.FC = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Tabs" component={TabNavigator} />
-      <Stack.Screen name="Analysis" component={AnalysisScreen} />
+      <Stack.Screen name="Analysis" component={AnalysisNavigator} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Social" component={SocialNavigator} />
       <Stack.Screen name="Score" component={ScoreNavigator} />

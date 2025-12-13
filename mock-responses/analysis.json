@@ -1,0 +1,44 @@
+{
+  "overall_score": 73,
+  "skill_level": "Intermediate",
+  "club_used": "7-iron",
+  "shot_shape": "straight",
+  "category_scores": {
+    "setup_posture": {
+      "score": 16,
+      "feedback": "Solid, athletic stance with good width providing a stable base."
+    },
+    "backswing_mechanics": {
+      "score": 12,
+      "feedback": "Significant lateral sway off the ball and over-rotation causes the club to go well past parallel."
+    },
+    "downswing_impact": {
+      "score": 14,
+      "feedback": "Good aggression, but the long backswing forces an early release (casting) to square the face."
+    },
+    "balance_finish": {
+      "score": 15,
+      "feedback": "Weight transfers successfully to the left side, though the finish shows some recoil."
+    },
+    "consistency_athleticism": {
+      "score": 16,
+      "feedback": "You generate excellent speed and athleticism, though the loose mechanics likely reduce consistency."
+    }
+  },
+  "what_was_good": [
+    "Very athletic setup and motion showing high potential for power.",
+    "Good commitment to getting weight onto the lead side at the finish."
+  ],
+  "what_was_bad": [
+    "Significant lateral sway (moving your head to the right) during the backswing.",
+    "Overswinging (club goes past parallel) creates timing issues."
+  ],
+  "immediate_focus": [
+    {
+      "issue": "Eliminating Lateral Sway",
+      "why_it_matters": "Sliding your body to the right moves your swing center, making it very difficult to strike the ball cleanly and consistently.",
+      "simple_fix": "Focus on rotating your shoulders around a steady spine rather than sliding back. Imagine your head is resting against a wall and keep it there while you turn."
+    }
+  ],
+  "confidence_note": "Analysis is based on a clear face-on view. A down-the-line angle would help confirm swing plane mechanics."
+}
