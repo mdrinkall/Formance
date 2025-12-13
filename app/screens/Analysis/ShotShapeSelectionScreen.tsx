@@ -15,7 +15,6 @@ type Props = StackScreenProps<AnalysisStackParamList, 'ShotShapeSelection'>;
 
 const SHOT_SHAPES: ShotShapeType[] = [
   "I don't know",
-  'Anything',
   'Straight',
   'Fade',
   'Draw',
@@ -30,6 +29,15 @@ export default function ShotShapeSelectionScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.wrapper}>
+      {/* Progress Indicator */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressSegment, styles.progressActive]} />
+          <View style={[styles.progressSegment, styles.progressActive]} />
+          <View style={[styles.progressSegment, styles.progressActive]} />
+        </View>
+      </View>
+
       <View style={styles.header}>
         <Text style={styles.title}>What shot shape are you trying to hit?</Text>
       </View>
@@ -64,6 +72,26 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  progressContainer: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
+    backgroundColor: palette.primary[900],
+  },
+  progressBar: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  progressSegment: {
+    flex: 1,
+    height: 3,
+    backgroundColor: 'rgba(233, 229, 214, 0.2)',
+    borderRadius: 2,
+  },
+  progressActive: {
+    backgroundColor: palette.secondary[500],
+  },
   header: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
@@ -71,10 +99,10 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   title: {
-    ...typography.h3,
+    ...typography.h4,
     fontWeight: '400',
     color: palette.accent.white,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   container: {
     flex: 1,

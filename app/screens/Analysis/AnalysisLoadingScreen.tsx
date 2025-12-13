@@ -3,7 +3,7 @@
  * Loading animation while processing swing analysis
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import Animated, {
@@ -17,6 +17,9 @@ import Svg, { Circle } from 'react-native-svg';
 import { AnalysisStackParamList } from '../../types/analysis';
 import { spacing, typography } from '../../styles';
 import { palette } from '../../theme/palette';
+import { useAuthContext } from '../../context/AuthContext';
+import { saveRecording } from '../../services/recordingService';
+import mockAnalysis from '../../../mock-responses/analysis.json';
 
 type Props = StackScreenProps<AnalysisStackParamList, 'Loading'>;
 
@@ -24,6 +27,8 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function AnalysisLoadingScreen({ route, navigation }: Props) {
   const { videoUrl, selectedClub, shotShape } = route.params;
+  const { user } = useAuthContext();
+  const [error, setError] = useState<string | null>(null);
 
   // Animation values
   const rotation = useSharedValue(0);
@@ -37,18 +42,62 @@ export default function AnalysisLoadingScreen({ route, navigation }: Props) {
       false
     );
 
-    // Auto-navigate after 3 seconds with fade out
-    const timeout = setTimeout(() => {
-      fadeOut.value = withTiming(0, {
-        duration: 300,
-        easing: Easing.out(Easing.quad),
-      }, () => {
-        navigation.replace('Results', { videoUrl, selectedClub, shotShape });
-      });
-    }, 3000);
+    // Simulate API call and save to Supabase
+    const processAnalysis = async () => {
+      try {
+        // Simulate API delay (3 seconds)
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
-    return () => clearTimeout(timeout);
-  }, [navigation, videoUrl, selectedClub, shotShape]);
+        // In production, this would be replaced with actual API call
+        // const analysis = await fetchAnalysisFromAPI(videoUrl);
+        const analysis = mockAnalysis;
+
+        // Save to Supabase
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        const recordingId = await saveRecording({
+          userId: user.id,
+          videoUrl,
+          analysis,
+          clubUsed: selectedClub,
+          shotShape,
+        });
+
+        // Navigate to results with fade out
+        fadeOut.value = withTiming(0, {
+          duration: 300,
+          easing: Easing.out(Easing.quad),
+        }, () => {
+          navigation.replace('Results', {
+            videoUrl,
+            selectedClub,
+            shotShape,
+            recordingId,
+          });
+        });
+      } catch (err) {
+        console.error('Error processing analysis:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        // Still navigate to results on error (for now)
+        // In production, you might want to show an error screen
+        fadeOut.value = withTiming(0, {
+          duration: 300,
+          easing: Easing.out(Easing.quad),
+        }, () => {
+          navigation.replace('Results', {
+            videoUrl,
+            selectedClub,
+            shotShape,
+            recordingId: '',
+          });
+        });
+      }
+    };
+
+    processAnalysis();
+  }, [navigation, videoUrl, selectedClub, shotShape, user]);
 
   const spinnerStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],

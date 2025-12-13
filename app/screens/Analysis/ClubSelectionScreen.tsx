@@ -75,8 +75,18 @@ export default function ClubSelectionScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.wrapper}>
+      {/* Progress Indicator */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressSegment, styles.progressActive]} />
+          <View style={[styles.progressSegment, styles.progressActive]} />
+          <View style={styles.progressSegment} />
+        </View>
+      </View>
+
       <View style={styles.header}>
         <Text style={styles.title}>What club are you using?</Text>
+        <Text style={styles.subtitle}>For beginners we recommend using a 7-iron</Text>
       </View>
 
       <ScrollView
@@ -158,6 +168,26 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  progressContainer: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
+    backgroundColor: palette.primary[900],
+  },
+  progressBar: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  progressSegment: {
+    flex: 1,
+    height: 3,
+    backgroundColor: 'rgba(233, 229, 214, 0.2)',
+    borderRadius: 2,
+  },
+  progressActive: {
+    backgroundColor: palette.secondary[500],
+  },
   header: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
@@ -165,10 +195,17 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   title: {
-    ...typography.h3,
+    ...typography.h4,
     fontWeight: '400',
     color: palette.accent.white,
-    textAlign: 'center',
+    textAlign: 'left',
+  },
+  subtitle: {
+    ...typography.caption,
+    color: palette.accent.white,
+    opacity: 0.6,
+    marginTop: spacing.sm,
+    textAlign: 'left',
   },
   container: {
     flex: 1,

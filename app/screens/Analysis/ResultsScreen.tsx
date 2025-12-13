@@ -23,6 +23,7 @@ import { Button } from '../../components/ui/Button';
 import { AnalysisStackParamList } from '../../types/analysis';
 import { spacing, typography } from '../../styles';
 import { palette } from '../../theme/palette';
+import { getRecording } from '../../services/recordingService';
 import mockAnalysis from '../../../mock-responses/analysis.json';
 
 type Props = StackScreenProps<AnalysisStackParamList, 'Results'>;
@@ -197,12 +198,37 @@ const RadialArc: React.FC<RadialArcProps> = ({ score, maxScore, index, total, ra
 };
 
 export default function ResultsScreen({ route, navigation }: Props) {
-  const { videoUrl, selectedClub, shotShape } = route.params;
+  const { videoUrl, selectedClub, shotShape, recordingId } = route.params;
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [analysisData, setAnalysisData] = useState<any>(mockAnalysis);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const videoRef = useRef<Video>(null);
 
+  // Load analysis from database if we have a recordingId and it's from navigation (not from fresh analysis)
+  useEffect(() => {
+    const loadSavedAnalysis = async () => {
+      if (recordingId) {
+        try {
+          setLoadingAnalysis(true);
+          const recording = await getRecording(recordingId);
+          if (recording?.analysis) {
+            setAnalysisData(recording.analysis);
+            console.log('Loaded saved analysis for recording:', recordingId);
+          }
+        } catch (error) {
+          console.error('Error loading saved analysis:', error);
+          // Fall back to mock data if there's an error
+        } finally {
+          setLoadingAnalysis(false);
+        }
+      }
+    };
+
+    loadSavedAnalysis();
+  }, [recordingId]);
+
   // Get categories first (needed for animations initialization)
-  const categories = Object.entries(mockAnalysis.category_scores);
+  const categories = Object.entries(analysisData.category_scores);
 
   // Hero score entry animations
   const heroScale = useSharedValue(0.92);
@@ -226,14 +252,14 @@ export default function ResultsScreen({ route, navigation }: Props) {
 
   // Bullet points animation (staggered)
   const goodBulletAnimations = useRef(
-    mockAnalysis.what_was_good.map(() => ({
+    analysisData.what_was_good.map(() => ({
       opacity: useSharedValue(0),
       iconScale: useSharedValue(0.9),
     }))
   ).current;
 
   const badBulletAnimations = useRef(
-    mockAnalysis.what_was_bad.map(() => ({
+    analysisData.what_was_bad.map(() => ({
       opacity: useSharedValue(0),
       iconScale: useSharedValue(0.9),
     }))
@@ -409,11 +435,14 @@ export default function ResultsScreen({ route, navigation }: Props) {
   };
 
   const selectedCategoryData = selectedCategory
-    ? mockAnalysis.category_scores[selectedCategory as keyof typeof mockAnalysis.category_scores]
+    ? analysisData.category_scores[selectedCategory as keyof typeof analysisData.category_scores]
     : null;
 
   return (
     <View style={styles.wrapper}>
+      {/* Progress Border */}
+      <View style={styles.progressBorder} />
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
@@ -453,30 +482,29 @@ export default function ResultsScreen({ route, navigation }: Props) {
               {/* Score content overlaid on SVG */}
               <View style={styles.scoreContent}>
                 <Animated.Text style={[styles.scoreNumber, scoreStyle]}>
-                  {mockAnalysis.overall_score}
+                  {analysisData.overall_score}
                 </Animated.Text>
                 <Animated.Text style={[styles.scoreLabel, labelStyle]}>
-                  {mockAnalysis.skill_level}
+                  {analysisData.skill_level}
                 </Animated.Text>
               </View>
             </Animated.View>
 
             {/* Subtext row */}
-            <Animated.View style={[styles.subtextRow, labelStyle]}>
-              <View style={styles.subtextItem}>
-                <Ionicons name="golf" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
-                <Text style={styles.subtextText}>{mockAnalysis.club_used}</Text>
-              </View>
-              <View style={styles.subtextDivider} />
-              <View style={styles.subtextItem}>
-                <Ionicons name="analytics" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
-                <Text style={styles.subtextText}>{mockAnalysis.shot_shape}</Text>
+            <Animated.View style={[styles.subtextCard, labelStyle]}>
+              <View style={styles.subtextRow}>
+                <View style={styles.subtextItem}>
+                  <Ionicons name="golf" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
+                  <Text style={styles.subtextText}>{analysisData.club_used}</Text>
+                </View>
+                <View style={styles.subtextDivider} />
+                <View style={styles.subtextItem}>
+                  <Ionicons name="analytics" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
+                  <Text style={styles.subtextText}>{analysisData.shot_shape}</Text>
+                </View>
               </View>
             </Animated.View>
           </View>
-
-          {/* Section Divider */}
-          <Animated.View style={[styles.sectionDivider, contentStyle]} />
 
           {/* Swing Video Card */}
           <View style={styles.section}>
@@ -511,6 +539,16 @@ export default function ResultsScreen({ route, navigation }: Props) {
           {/* Category Breakdown Cards - Vertical List */}
           <View style={styles.section}>
             <Animated.Text style={[styles.sectionTitle, contentStyle]}>Category Breakdown</Animated.Text>
+
+            {/* Tip Section */}
+            <Animated.View style={[styles.categoryTipContainer, contentStyle]}>
+              <Ionicons name="information-circle-outline" size={16} color={palette.secondary[500]} />
+              <Text style={styles.categoryTipText}>
+                <Text style={styles.categoryTipLabel}></Text>
+                Click on each category to get more insights into the scoring
+              </Text>
+            </Animated.View>
+
             {categories.map(([key, value], index) => (
               <AnimatedCategoryCard
                 key={key}
@@ -518,7 +556,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
                 value={value}
                 anim={categoryAnimations[index]}
                 onPress={() => setSelectedCategory(key)}
-                onLayout={(y) => {}}
+                onLayout={(y) => { }}
               />
             ))}
           </View>
@@ -533,7 +571,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
               <Text style={[styles.sectionTitle, styles.inlineTitle]}>What Went Well</Text>
             </Animated.View>
             <View style={styles.feedbackCard}>
-              {mockAnalysis.what_was_good.map((item, index) => (
+              {analysisData.what_was_good.map((item, index) => (
                 <AnimatedBullet
                   key={index}
                   text={item}
@@ -552,7 +590,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
               <Text style={[styles.sectionTitle, styles.inlineTitle]}>What Needs Work</Text>
             </Animated.View>
             <View style={styles.feedbackCard}>
-              {mockAnalysis.what_was_bad.map((item, index) => (
+              {analysisData.what_was_bad.map((item, index) => (
                 <AnimatedBullet
                   key={index}
                   text={item}
@@ -573,7 +611,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
               <Ionicons name="flash" size={24} color="#EC4899" />
               <Text style={[styles.sectionTitle, styles.inlineTitle]}>Immediate Focus</Text>
             </Animated.View>
-            {mockAnalysis.immediate_focus.map((focus, index) => (
+            {analysisData.immediate_focus.map((focus, index) => (
               <Animated.View key={index} style={[styles.focusCard, contentStyle]}>
                 <Text style={styles.focusIssue}>{focus.issue}</Text>
 
@@ -587,11 +625,17 @@ export default function ResultsScreen({ route, navigation }: Props) {
                   <Text style={styles.focusText}>{focus.simple_fix}</Text>
                 </View>
 
-                {/* Placeholder for future CTA */}
-                <TouchableOpacity style={styles.focusCTAButton} activeOpacity={0.8}>
-                  <Text style={styles.focusCTAText}>View Related Drill</Text>
-                  <Ionicons name="arrow-forward" size={16} color={palette.primary[900]} />
-                </TouchableOpacity>
+                {/* YouTube Drill Link */}
+                {focus.youtube_url && (
+                  <TouchableOpacity
+                    style={styles.focusCTAButton}
+                    activeOpacity={0.8}
+                    onPress={() => Linking.openURL(focus.youtube_url)}
+                  >
+                    <Text style={styles.focusCTAText}>View Related Drill</Text>
+                    <Ionicons name="arrow-forward" size={16} color={palette.primary[900]} />
+                  </TouchableOpacity>
+                )}
               </Animated.View>
             ))}
           </View>
@@ -599,7 +643,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
           {/* Confidence Note */}
           <Animated.View style={[styles.confidenceSection, contentStyle]}>
             <Ionicons name="information-circle-outline" size={16} color={palette.accent.white} style={{ opacity: 0.5 }} />
-            <Text style={styles.confidenceText}>{mockAnalysis.confidence_note}</Text>
+            <Text style={styles.confidenceText}>{analysisData.confidence_note}</Text>
           </Animated.View>
 
           {/* Action Button */}
@@ -664,6 +708,25 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  progressBorder: {
+    height: 2,
+    width: '100%',
+    backgroundColor: palette.secondary[500],
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0 -2px 4px rgba(0,0,0,0.15)',
+      },
+    }),
+  },
   container: {
     flex: 1,
     flexShrink: 1,
@@ -716,6 +779,15 @@ const styles = StyleSheet.create({
     color: palette.accent.white,
     opacity: 0.8,
     marginTop: spacing.xs,
+  },
+  subtextCard: {
+    backgroundColor: palette.primary[950],
+    borderRadius: 100,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderWidth: 1,
+    borderColor: palette.primary[950],
+    alignSelf: 'center',
   },
   subtextRow: {
     flexDirection: 'row',
@@ -825,6 +897,29 @@ const styles = StyleSheet.create({
   },
 
   // Category Cards
+  categoryTipContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: palette.primary[950],
+    borderRadius: 12,
+    padding: spacing.base,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: palette.primary[950],
+  },
+  categoryTipText: {
+    ...typography.body,
+    fontSize: 13,
+    color: palette.accent.white,
+    opacity: 0.9,
+    flex: 1,
+    lineHeight: 18,
+  },
+  categoryTipLabel: {
+    fontWeight: '600',
+    color: palette.secondary[500],
+  },
   categoryCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
@@ -1057,5 +1152,6 @@ const styles = StyleSheet.create({
   // Button
   buttonContainer: {
     marginTop: spacing.base,
+    marginBottom: spacing.xxxl,
   },
 });

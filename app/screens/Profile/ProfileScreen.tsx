@@ -3,7 +3,7 @@
  * User profile with edit capabilities, stats, followers/following, and posts
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { spacing, typography } from '@/styles';
@@ -24,14 +25,16 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { FollowersModal } from '../../components/FollowersModal';
 import { SearchModal } from '../../components/SearchModal';
+import { AnalysisCarousel } from '../../components/AnalysisCarousel';
 import { useAuthContext } from '../../context/AuthContext';
 import { supabase } from '../../services/supabase';
 import { uploadAvatar, deleteFile } from '../../services/storageService';
+import { getUserRecordings, getRecording } from '../../services/recordingService';
 
 interface Profile {
   id: string;
   username: string | null;
-  handicap: number | null;
+  rating: number | null;
   bio: string | null;
   profile_picture_url: string | null;
   country: string | null;
@@ -48,9 +51,11 @@ interface CommunityPost {
 
 export default function ProfileScreen() {
   const { user } = useAuthContext();
+  const navigation = useNavigation<any>();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [recordings, setRecordings] = useState<any[]>([]);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -70,7 +75,7 @@ export default function ProfileScreen() {
   const [editUsername, setEditUsername] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editCountry, setEditCountry] = useState('');
-  const [editHandicap, setEditHandicap] = useState('');
+  const [editRating, setEditRating] = useState('');
   const [editSwingGoal, setEditSwingGoal] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -80,11 +85,28 @@ export default function ProfileScreen() {
     }
   }, [user]);
 
-  const loadProfileData = async () => {
-    try {
-      setLoading(true);
+  // Reload recordings and profile info whenever the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        loadRecordings();
+        loadProfileInfo();
+      }
+    }, [user])
+  );
 
-      // Fetch profile
+  const loadRecordings = async () => {
+    try {
+      const recordingsData = await getUserRecordings(user!.id, 8);
+      setRecordings(recordingsData);
+    } catch (error) {
+      console.error('Error loading recordings:', error);
+      setRecordings([]);
+    }
+  };
+
+  const loadProfileInfo = async () => {
+    try {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -94,12 +116,23 @@ export default function ProfileScreen() {
       if (profileError) throw profileError;
       setProfile(profileData);
 
-      // Set edit form initial values
+      // Update edit form values
       setEditUsername(profileData?.username || '');
       setEditBio(profileData?.bio || '');
       setEditCountry(profileData?.country || '');
-      setEditHandicap(profileData?.handicap?.toString() || '');
+      setEditRating(profileData?.rating?.toString() || '');
       setEditSwingGoal(profileData?.swing_goal || '');
+    } catch (error) {
+      console.error('Error loading profile info:', error);
+    }
+  };
+
+  const loadProfileData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch profile info
+      await loadProfileInfo();
 
       // Fetch followers count
       const { count: followersCount, error: followersError } = await supabase
@@ -126,6 +159,9 @@ export default function ProfileScreen() {
         .limit(10);
 
       if (!postsError) setPosts(postsData || []);
+
+      // Load recordings separately (handled by useFocusEffect)
+      await loadRecordings();
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {
@@ -215,7 +251,7 @@ export default function ProfileScreen() {
         username: editUsername || null,
         bio: editBio || null,
         country: editCountry || null,
-        handicap: editHandicap ? parseFloat(editHandicap) : null,
+        rating: editRating ? parseFloat(editRating) : null,
         swing_goal: editSwingGoal || null,
         updated_at: new Date().toISOString(),
       };
@@ -294,6 +330,38 @@ export default function ProfileScreen() {
     setSearchModalVisible(true);
   };
 
+  const handleRecordingPress = async (recordingId: string) => {
+    try {
+      // Fetch the full recording data
+      const recording = await getRecording(recordingId);
+
+      if (!recording) {
+        console.error('Recording not found');
+        return;
+      }
+
+      // Navigate to the Analysis stack's Results screen with the recording data
+      navigation.navigate('Analysis', {
+        screen: 'Results',
+        params: {
+          videoUrl: recording.video_url,
+          selectedClub: recording.club_used || 'Unknown',
+          shotShape: recording.shot_shape || 'Unknown',
+          recordingId: recording.id,
+        },
+      });
+    } catch (error) {
+      console.error('Error loading recording:', error);
+    }
+  };
+
+  const handleNewAnalysis = () => {
+    // Navigate to the Analysis stack's VideoUpload screen
+    navigation.navigate('Analysis', {
+      screen: 'VideoUpload',
+    });
+  };
+
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.fullName || profile?.username || 'User';
 
   if (loading) {
@@ -359,8 +427,8 @@ export default function ProfileScreen() {
               <Text style={styles.statLabel}>Following</Text>
             </TouchableOpacity>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{profile?.handicap || 'N/A'}</Text>
-              <Text style={styles.statLabel}>Handicap</Text>
+              <Text style={styles.statValue}>{profile?.rating || 'N/A'}</Text>
+              <Text style={styles.statLabel}>Rating</Text>
             </View>
           </View>
         </View>
@@ -389,6 +457,13 @@ export default function ProfileScreen() {
             onPress={() => console.log('Share profile')}
           />
         </View>
+
+        {/* Analysis Carousel */}
+        <AnalysisCarousel
+          recordings={recordings}
+          onRecordingPress={handleRecordingPress}
+          onNewPress={handleNewAnalysis}
+        />
 
         {/* Section Divider */}
         <View style={styles.sectionDivider} />
@@ -473,10 +548,10 @@ export default function ProfileScreen() {
               placeholder="e.g., United States"
             />
             <Input
-              label="Handicap"
-              value={editHandicap}
-              onChangeText={setEditHandicap}
-              placeholder="e.g., 15.2"
+              label="Rating"
+              value={editRating}
+              onChangeText={setEditRating}
+              placeholder="e.g., 72.5"
               keyboardType="decimal-pad"
             />
             <Input

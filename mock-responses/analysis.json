@@ -1,44 +1,45 @@
 {
-  "overall_score": 73,
-  "skill_level": "Intermediate",
-  "club_used": "7-iron",
-  "shot_shape": "straight",
+  "overall_score": 75,
+  "skill_level": "Developing",
+  "club_used": "5-iron",
+  "shot_shape": "fade",
   "category_scores": {
     "setup_posture": {
-      "score": 16,
-      "feedback": "Solid, athletic stance with good width providing a stable base."
+      "score": 14,
+      "feedback": "Neutral stance but ball position is slightly too far forward."
     },
     "backswing_mechanics": {
-      "score": 12,
-      "feedback": "Significant lateral sway off the ball and over-rotation causes the club to go well past parallel."
+      "score": 11,
+      "feedback": "Arms dominate the takeaway with limited shoulder turn."
     },
     "downswing_impact": {
-      "score": 14,
-      "feedback": "Good aggression, but the long backswing forces an early release (casting) to square the face."
+      "score": 13,
+      "feedback": "Steep angle of attack leads to glancing contact and weak fades."
     },
     "balance_finish": {
-      "score": 15,
-      "feedback": "Weight transfers successfully to the left side, though the finish shows some recoil."
+      "score": 13,
+      "feedback": "Finish is upright with weight not fully committed to the lead side."
     },
     "consistency_athleticism": {
-      "score": 16,
-      "feedback": "You generate excellent speed and athleticism, though the loose mechanics likely reduce consistency."
+      "score": 14,
+      "feedback": "Good effort and speed, but sequencing limits efficiency."
     }
   },
   "what_was_good": [
-    "Very athletic setup and motion showing high potential for power.",
-    "Good commitment to getting weight onto the lead side at the finish."
+    "Stable lower body through impact.",
+    "Good intent to swing aggressively with the driver."
   ],
   "what_was_bad": [
-    "Significant lateral sway (moving your head to the right) during the backswing.",
-    "Overswinging (club goes past parallel) creates timing issues."
+    "Over-the-top transition causing a steep downswing.",
+    "Lack of torso rotation in the backswing."
   ],
   "immediate_focus": [
     {
-      "issue": "Eliminating Lateral Sway",
-      "why_it_matters": "Sliding your body to the right moves your swing center, making it very difficult to strike the ball cleanly and consistently.",
-      "simple_fix": "Focus on rotating your shoulders around a steady spine rather than sliding back. Imagine your head is resting against a wall and keep it there while you turn."
+      "issue": "Shallowing the Downswing",
+      "why_it_matters": "A steep downswing reduces distance and increases side spin.",
+      "simple_fix": "Start the downswing by rotating your hips while keeping your back to the target slightly longer.",
+      "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     }
   ],
-  "confidence_note": "Analysis is based on a clear face-on view. A down-the-line angle would help confirm swing plane mechanics."
+  "confidence_note": "Driver-specific issues identified; analysis would benefit from impact location data."
 }

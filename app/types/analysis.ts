@@ -9,7 +9,7 @@ export type AnalysisStackParamList = {
   ShotShapeSelection: { videoUrl: string; selectedClub: string };
   Paywall: { videoUrl: string; selectedClub: string; shotShape: string };
   Loading: { videoUrl: string; selectedClub: string; shotShape: string };
-  Results: { videoUrl: string; selectedClub: string; shotShape: string };
+  Results: { videoUrl: string; selectedClub: string; shotShape: string; recordingId: string };
 };
 
 export type ClubType =

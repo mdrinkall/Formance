@@ -61,7 +61,7 @@ function EmptyStateView({ username, navigation }: { username: string; navigation
       <TouchableOpacity
         style={styles.recordCard}
         accessibilityRole="button"
-        accessibilityLabel="AI Analysis - Record your swing"
+        accessibilityLabel="Improve Your Rating - Record your swing"
         activeOpacity={0.9}
         onPress={() => navigation.navigate('Analysis')}
       >
@@ -79,7 +79,7 @@ function EmptyStateView({ username, navigation }: { username: string; navigation
 
           {/* Text content */}
           <View style={styles.recordTextContainer}>
-            <Text style={styles.recordCardTitle}>AI ANALYSIS</Text>
+            <Text style={styles.recordCardTitle}>IMPROVE YOUR RATING</Text>
             <Text style={styles.recordCardDescription}>
               Our state of the art insight tool can dissect your swing and help you improve instantly
             </Text>

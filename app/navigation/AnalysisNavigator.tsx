@@ -4,7 +4,9 @@
  */
 
 import React from 'react';
+import { Text, TouchableOpacity } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import VideoUploadScreen from '../screens/Analysis/VideoUploadScreen';
 import ClubSelectionScreen from '../screens/Analysis/ClubSelectionScreen';
 import ShotShapeSelectionScreen from '../screens/Analysis/ShotShapeSelectionScreen';
@@ -13,6 +15,7 @@ import AnalysisLoadingScreen from '../screens/Analysis/AnalysisLoadingScreen';
 import ResultsScreen from '../screens/Analysis/ResultsScreen';
 import { AnalysisStackParamList } from '../types/analysis';
 import { palette } from '../theme/palette';
+import { typography } from '../styles';
 
 const Stack = createStackNavigator<AnalysisStackParamList>();
 
@@ -35,22 +38,22 @@ export const AnalysisNavigator: React.FC = () => {
       <Stack.Screen
         name="VideoUpload"
         component={VideoUploadScreen}
-        options={{ title: 'Upload Video' }}
+        options={{ headerTitle: '' }}
       />
       <Stack.Screen
         name="ClubSelection"
         component={ClubSelectionScreen}
-        options={{ title: 'Select Club' }}
+        options={{ headerTitle: '' }}
       />
       <Stack.Screen
         name="ShotShapeSelection"
         component={ShotShapeSelectionScreen}
-        options={{ title: 'Shot Shape' }}
+        options={{ headerTitle: '' }}
       />
       <Stack.Screen
         name="Paywall"
         component={PaywallScreen}
-        options={{ title: 'Unlock Analysis' }}
+        options={{ headerTitle: '' }}
       />
       <Stack.Screen
         name="Loading"
@@ -60,7 +63,42 @@ export const AnalysisNavigator: React.FC = () => {
       <Stack.Screen
         name="Results"
         component={ResultsScreen}
-        options={{ title: 'Analysis Results' }}
+        options={({ navigation }) => ({
+          headerTitle: '',
+          headerLeft: () => (
+            <Text style={{
+              ...typography.h4,
+              color: palette.accent.white,
+              letterSpacing: 1.5,
+              fontWeight: '400',
+              marginLeft: 16,
+            }}>
+              FORMANCE
+            </Text>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => {
+                // Navigate back to the main app tabs (Home screen)
+                const parent = navigation.getParent();
+                if (parent) {
+                  parent.navigate('Tabs' as never);
+                }
+              }}
+              style={{
+                marginRight: 16,
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Home"
+            >
+              <Ionicons name="home-outline" size={24} color={palette.accent.white} />
+            </TouchableOpacity>
+          ),
+        })}
       />
     </Stack.Navigator>
   );

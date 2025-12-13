@@ -53,14 +53,32 @@ export type Database = {
           email: string;
           full_name: string | null;
           avatar_url: string | null;
-          handicap: number | null;
+          rating: number | null;
           created_at: string;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
       };
-      // TODO: Add other table types (swings, scores, friends, etc.)
+      recordings: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          video_url: string;
+          analysis: any; // JSONB
+          score: number | null;
+          club_used: string | null;
+          shot_shape: string | null;
+          created_at: string;
+          status: string;
+          payment_id: string | null;
+          analyzed_at: string | null;
+          analysis_version: string;
+        };
+        Insert: Omit<Database['public']['Tables']['recordings']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['recordings']['Insert']>;
+      };
+      // TODO: Add other table types (community_posts, follows, messages, etc.)
     };
   };
 };

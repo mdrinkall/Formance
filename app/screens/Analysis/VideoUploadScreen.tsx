@@ -6,10 +6,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
-import { Button } from '../../components/ui/Button';
 import { AnalysisStackParamList } from '../../types/analysis';
 import { uploadVideo } from '../../services/storageService';
 import { useAuthContext } from '../../context/AuthContext';
@@ -226,6 +226,15 @@ export default function VideoUploadScreen({ navigation }: Props) {
 
   return (
     <View style={styles.wrapper}>
+      {/* Progress Indicator */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressSegment, styles.progressActive]} />
+          <View style={styles.progressSegment} />
+          <View style={styles.progressSegment} />
+        </View>
+      </View>
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
@@ -244,33 +253,43 @@ export default function VideoUploadScreen({ navigation }: Props) {
               </View>
             )}
 
-            <Button
-              title={loading ? 'Uploading...' : 'Upload Video'}
-              variant="secondary"
-              size="lg"
-              fullWidth
-              onPress={handlePickVideo}
-              loading={loading}
-              disabled={loading}
-            />
-
-            {/* Divider with OR */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Recently Uploaded */}
+            {/* Video Selection */}
             <View style={styles.recentSection}>
-              <Text style={styles.recentTitle}>Recently Uploaded</Text>
+              <Text style={styles.recentTitle}>What video do you want to analyse?</Text>
+
+              {/* Tip Section */}
+              <View style={styles.tipContainer}>
+                <Ionicons name="bulb-outline" size={18} color={palette.secondary[500]} />
+                <Text style={styles.tipText}>
+                  <Text style={styles.tipLabel}>Tip: </Text>
+                  The AI improves its accuracy by over 70% when you use a slow-motion video
+                </Text>
+              </View>
 
               {loadingRecent ? (
-                <Text style={styles.loadingText}>Loading recent videos...</Text>
-              ) : recentVideos.length > 0 ? (
+                <Text style={styles.loadingText}>Loading videos...</Text>
+              ) : (
                 <>
                   <View style={styles.videoGrid}>
-                    {(showAllVideos ? recentVideos : recentVideos.slice(0, 4)).map((video, index) => (
+                    {/* Upload New Video Card */}
+                    <TouchableOpacity
+                      style={styles.uploadCard}
+                      onPress={handlePickVideo}
+                      activeOpacity={0.8}
+                      disabled={loading}
+                    >
+                      <View style={styles.uploadCardContent}>
+                        <Ionicons
+                          name="add-circle-outline"
+                          size={48}
+                          color={palette.secondary[500]}
+                        />
+                        <Text style={styles.uploadCardText}>Upload Video</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* Recent Videos */}
+                    {(showAllVideos ? recentVideos : recentVideos.slice(0, 3)).map((video, index) => (
                       <TouchableOpacity
                         key={video.name}
                         style={styles.thumbnailCard}
@@ -291,7 +310,10 @@ export default function VideoUploadScreen({ navigation }: Props) {
                         )}
 
                         {/* Date and time overlay at bottom */}
-                        <View style={styles.dateOverlay}>
+                        <LinearGradient
+                          colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
+                          style={styles.dateOverlay}
+                        >
                           <Text style={styles.overlayDate}>
                             {new Date(video.created_at).toLocaleString('en-US', {
                               hour: '2-digit',
@@ -301,20 +323,20 @@ export default function VideoUploadScreen({ navigation }: Props) {
                               hour12: false
                             })}
                           </Text>
-                        </View>
+                        </LinearGradient>
                       </TouchableOpacity>
                     ))}
                   </View>
 
                   {/* Show More Button */}
-                  {recentVideos.length > 4 && (
+                  {recentVideos.length > 3 && (
                     <TouchableOpacity
                       style={styles.showMoreButton}
                       onPress={() => setShowAllVideos(!showAllVideos)}
                       activeOpacity={0.8}
                     >
                       <Text style={styles.showMoreText}>
-                        {showAllVideos ? 'Show Less' : `Show More (${recentVideos.length - 4} more)`}
+                        {showAllVideos ? 'Show Less' : `Show More (${recentVideos.length - 3} more)`}
                       </Text>
                       <Ionicons
                         name={showAllVideos ? 'chevron-up' : 'chevron-down'}
@@ -324,8 +346,6 @@ export default function VideoUploadScreen({ navigation }: Props) {
                     </TouchableOpacity>
                   )}
                 </>
-              ) : (
-                <Text style={styles.emptyText}>No recent videos found</Text>
               )}
             </View>
           </View>
@@ -345,6 +365,26 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  progressContainer: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
+    backgroundColor: palette.primary[900],
+  },
+  progressBar: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  progressSegment: {
+    flex: 1,
+    height: 3,
+    backgroundColor: 'rgba(233, 229, 214, 0.2)',
+    borderRadius: 2,
+  },
+  progressActive: {
+    backgroundColor: palette.secondary[500],
+  },
   container: {
     flex: 1,
     flexShrink: 1,
@@ -362,13 +402,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  title: {
-    ...typography.h3,
-    fontWeight: '400',
-    color: palette.accent.white,
-    marginBottom: spacing.xl,
-    textAlign: 'left',
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.2)',
@@ -396,24 +429,9 @@ const styles = StyleSheet.create({
     color: palette.accent.white,
     textAlign: 'center',
   },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.xxxl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  dividerText: {
-    ...typography.label,
-    color: palette.accent.white,
-    opacity: 0.6,
-    marginHorizontal: spacing.base,
-  },
   recentSection: {
     marginTop: spacing.base,
+    paddingBottom: spacing.xxxl,
   },
   recentTitle: {
     ...typography.h4,
@@ -422,16 +440,66 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     textAlign: 'left',
   },
+  tipContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: 'rgba(233, 229, 214, 0.08)',
+    borderRadius: 12,
+    padding: spacing.base,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(233, 229, 214, 0.15)',
+  },
+  tipText: {
+    ...typography.body,
+    fontSize: 14,
+    color: palette.accent.white,
+    opacity: 0.9,
+    flex: 1,
+    lineHeight: 20,
+  },
+  tipLabel: {
+    fontWeight: '600',
+    color: palette.secondary[500],
+  },
   videoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  uploadCard: {
+    width: '48%',
+    aspectRatio: 9 / 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: palette.secondary[500],
+    borderStyle: 'dashed',
+    position: 'relative',
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      },
+    }),
+  },
+  uploadCardContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: spacing.md,
+  },
+  uploadCardText: {
+    ...typography.label,
+    color: palette.secondary[500],
+    fontWeight: '400',
   },
   thumbnailCard: {
     width: '48%',
-    aspectRatio: 1,
+    aspectRatio: 9 / 16,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16,
+    borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.15)',
@@ -457,24 +525,18 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingVertical: spacing.sm,
+    height: 80,
+    justifyContent: 'flex-end',
+    paddingBottom: spacing.md,
     paddingHorizontal: spacing.md,
   },
   overlayDate: {
     ...typography.caption,
     color: palette.accent.white,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: '400',
+    textAlign: 'left',
   },
   loadingText: {
-    ...typography.body,
-    color: palette.accent.white,
-    opacity: 0.7,
-    textAlign: 'center',
-    marginTop: spacing.xl,
-  },
-  emptyText: {
     ...typography.body,
     color: palette.accent.white,
     opacity: 0.7,
