@@ -35,6 +35,7 @@ interface FollowersModalProps {
   loading: boolean;
   onSearchPress?: () => void;
   onFollowChange?: () => void;
+  onUserPress?: (userId: string) => void;
 }
 
 export const FollowersModal: React.FC<FollowersModalProps> = ({
@@ -45,6 +46,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
   loading,
   onSearchPress,
   onFollowChange,
+  onUserPress,
 }) => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
@@ -196,6 +198,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                 <View key={user.id} style={styles.userItem}>
                   <TouchableOpacity
                     style={styles.userItemContent}
+                    onPress={() => onUserPress?.(user.id)}
                     activeOpacity={0.7}
                     accessibilityLabel={`View ${user.username || 'user'} profile`}
                     accessibilityRole="button"

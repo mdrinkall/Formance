@@ -26,7 +26,7 @@ interface Recording {
 interface AnalysisCarouselProps {
   recordings: Recording[];
   onRecordingPress: (recordingId: string) => void;
-  onNewPress: () => void;
+  onNewPress?: () => void;
 }
 
 // Helper function to clean up club names
@@ -51,21 +51,23 @@ export const AnalysisCarousel: React.FC<AnalysisCarouselProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Add New Analysis Card - First on the left */}
-        <TouchableOpacity
-          style={styles.storyContainer}
-          onPress={onNewPress}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel="Record new swing"
-        >
-          <View style={styles.addBorder}>
-            <View style={styles.addCircle}>
-              <Ionicons name="add" size={32} color={palette.primary[900]} />
+        {/* Add New Analysis Card - Only show if onNewPress is provided */}
+        {onNewPress && (
+          <TouchableOpacity
+            style={styles.storyContainer}
+            onPress={onNewPress}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Record new swing"
+          >
+            <View style={styles.addBorder}>
+              <View style={styles.addCircle}>
+                <Ionicons name="add" size={32} color={palette.primary[900]} />
+              </View>
             </View>
-          </View>
-          <Text style={styles.clubLabel}>New</Text>
-        </TouchableOpacity>
+            <Text style={styles.clubLabel}>New</Text>
+          </TouchableOpacity>
+        )}
 
         {recordings.map((recording) => (
           <TouchableOpacity

@@ -14,6 +14,7 @@ import {
   Image,
   Modal,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -39,6 +40,7 @@ interface Profile {
   profile_picture_url: string | null;
   country: string | null;
   swing_goal: string | null;
+  is_private: boolean | null;
 }
 
 interface CommunityPost {
@@ -71,12 +73,18 @@ export default function ProfileScreen() {
   // Search modal state
   const [searchModalVisible, setSearchModalVisible] = useState(false);
 
+  // Follow requests state
+  const [followRequestsCount, setFollowRequestsCount] = useState(0);
+  const [followRequestsModalVisible, setFollowRequestsModalVisible] = useState(false);
+  const [followRequests, setFollowRequests] = useState<any[]>([]);
+  const [followRequestsLoading, setFollowRequestsLoading] = useState(false);
+
   // Edit form state
   const [editUsername, setEditUsername] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editCountry, setEditCountry] = useState('');
-  const [editRating, setEditRating] = useState('');
   const [editSwingGoal, setEditSwingGoal] = useState('');
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -120,8 +128,8 @@ export default function ProfileScreen() {
       setEditUsername(profileData?.username || '');
       setEditBio(profileData?.bio || '');
       setEditCountry(profileData?.country || '');
-      setEditRating(profileData?.rating?.toString() || '');
       setEditSwingGoal(profileData?.swing_goal || '');
+      setEditIsPrivate(profileData?.is_private || false);
     } catch (error) {
       console.error('Error loading profile info:', error);
     }
@@ -149,6 +157,15 @@ export default function ProfileScreen() {
         .eq('follower_id', user?.id);
 
       if (!followingError) setFollowingCount(followingCount || 0);
+
+      // Fetch pending follow requests count (only if account is private)
+      const { count: requestsCount, error: requestsError } = await supabase
+        .from('follow_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('requested_id', user?.id)
+        .eq('status', 'pending');
+
+      if (!requestsError) setFollowRequestsCount(requestsCount || 0);
 
       // Fetch user's community posts
       const { data: postsData, error: postsError } = await supabase
@@ -251,8 +268,8 @@ export default function ProfileScreen() {
         username: editUsername || null,
         bio: editBio || null,
         country: editCountry || null,
-        rating: editRating ? parseFloat(editRating) : null,
         swing_goal: editSwingGoal || null,
+        is_private: editIsPrivate,
         updated_at: new Date().toISOString(),
       };
 
@@ -270,6 +287,62 @@ export default function ProfileScreen() {
       alert('Failed to save profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const loadFollowRequests = async () => {
+    try {
+      setFollowRequestsLoading(true);
+      setFollowRequestsModalVisible(true);
+
+      // Fetch pending follow requests with user details
+      const { data, error } = await supabase
+        .from('follow_requests')
+        .select('id, requester_id, created_at, profiles:requester_id(id, username, profile_picture_url)')
+        .eq('requested_id', user?.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setFollowRequests(data || []);
+    } catch (error) {
+      console.error('Error loading follow requests:', error);
+      setFollowRequests([]);
+    } finally {
+      setFollowRequestsLoading(false);
+    }
+  };
+
+  const handleApproveRequest = async (requestId: string) => {
+    try {
+      const { error } = await supabase.rpc('accept_follow_request', {
+        request_id: requestId,
+      });
+
+      if (error) throw error;
+
+      // Reload requests and update counts
+      await loadFollowRequests();
+      await loadProfileData();
+    } catch (error) {
+      console.error('Error approving follow request:', error);
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    try {
+      const { error } = await supabase.rpc('reject_follow_request', {
+        request_id: requestId,
+      });
+
+      if (error) throw error;
+
+      // Reload requests
+      await loadFollowRequests();
+      setFollowRequestsCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error rejecting follow request:', error);
     }
   };
 
@@ -328,6 +401,15 @@ export default function ProfileScreen() {
   const handleSearchPress = () => {
     setFollowersModalVisible(false);
     setSearchModalVisible(true);
+  };
+
+  const handleUserPress = (userId: string) => {
+    setFollowersModalVisible(false);
+    setSearchModalVisible(false);
+    navigation.navigate('Social', {
+      screen: 'UserProfile',
+      params: { userId },
+    });
   };
 
   const handleRecordingPress = async (recordingId: string) => {
@@ -458,6 +540,23 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* Follow Requests Button (only show if there are pending requests) */}
+        {followRequestsCount > 0 && (
+          <TouchableOpacity
+            style={styles.followRequestsButton}
+            onPress={loadFollowRequests}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${followRequestsCount} follow request${followRequestsCount > 1 ? 's' : ''}`}
+          >
+            <Ionicons name="person-add" size={20} color={palette.primary[900]} />
+            <Text style={styles.followRequestsText}>
+              {followRequestsCount} Follow Request{followRequestsCount > 1 ? 's' : ''}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={palette.text.light.secondary} />
+          </TouchableOpacity>
+        )}
+
         {/* Analysis Carousel */}
         <AnalysisCarousel
           recordings={recordings}
@@ -548,13 +647,6 @@ export default function ProfileScreen() {
               placeholder="e.g., United States"
             />
             <Input
-              label="Rating"
-              value={editRating}
-              onChangeText={setEditRating}
-              placeholder="e.g., 72.5"
-              keyboardType="decimal-pad"
-            />
-            <Input
               label="Swing Goal"
               value={editSwingGoal}
               onChangeText={setEditSwingGoal}
@@ -563,6 +655,26 @@ export default function ProfileScreen() {
               numberOfLines={2}
               style={styles.textArea}
             />
+
+            {/* Privacy Toggle */}
+            <View style={styles.privacyContainer}>
+              <View style={styles.privacyTextContainer}>
+                <Text style={styles.privacyLabel}>Private Account</Text>
+                <Text style={styles.privacyDescription}>
+                  Only your followers can see your profile, recordings, and posts
+                </Text>
+              </View>
+              <Switch
+                value={editIsPrivate}
+                onValueChange={setEditIsPrivate}
+                trackColor={{
+                  false: palette.neutral[300],
+                  true: palette.primary[900],
+                }}
+                thumbColor={palette.accent.white}
+                ios_backgroundColor={palette.neutral[300]}
+              />
+            </View>
 
             <Button
               title="Save Changes"
@@ -594,13 +706,102 @@ export default function ProfileScreen() {
           // Mark that we need to refresh when modal closes
           setNeedsRefresh(true);
         }}
+        onUserPress={handleUserPress}
       />
 
       {/* Search Modal */}
       <SearchModal
         visible={searchModalVisible}
         onClose={() => setSearchModalVisible(false)}
+        onUserPress={handleUserPress}
       />
+
+      {/* Follow Requests Modal */}
+      <Modal
+        visible={followRequestsModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setFollowRequestsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              onPress={() => setFollowRequestsModalVisible(false)}
+              style={styles.modalCloseButton}
+              accessibilityLabel="Close"
+              accessibilityRole="button"
+            >
+              <Ionicons name="close" size={28} color={palette.text.light.primary} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Follow Requests</Text>
+            <View style={styles.modalPlaceholder} />
+          </View>
+
+          <ScrollView
+            style={styles.modalContent}
+            contentContainerStyle={styles.modalContentContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {followRequestsLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={palette.primary[900]} />
+              </View>
+            ) : followRequests.length > 0 ? (
+              followRequests.map((request) => (
+                <View key={request.id} style={styles.requestItem}>
+                  <View style={styles.requestUserInfo}>
+                    {request.profiles?.profile_picture_url ? (
+                      <Image
+                        source={{ uri: request.profiles.profile_picture_url }}
+                        style={styles.requestAvatar}
+                      />
+                    ) : (
+                      <View style={styles.requestAvatarPlaceholder}>
+                        <Ionicons name="person" size={24} color={palette.primary[900]} />
+                      </View>
+                    )}
+                    <View style={styles.requestTextContainer}>
+                      <Text style={styles.requestUsername}>
+                        {request.profiles?.username || 'User'}
+                      </Text>
+                      <Text style={styles.requestTime}>
+                        {new Date(request.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.requestActions}>
+                    <Button
+                      title="Accept"
+                      variant="primary"
+                      size="sm"
+                      onPress={() => handleApproveRequest(request.id)}
+                      style={styles.requestButton}
+                    />
+                    <Button
+                      title="Decline"
+                      variant="outline"
+                      size="sm"
+                      onPress={() => handleRejectRequest(request.id)}
+                      style={styles.requestButton}
+                    />
+                  </View>
+                </View>
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="person-add-outline" size={64} color={palette.text.light.secondary} />
+                <Text style={styles.emptyTitle}>No Follow Requests</Text>
+                <Text style={styles.emptyDescription}>
+                  When people request to follow you, they'll appear here
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -841,5 +1042,140 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: spacing.base,
     marginBottom: spacing.xl,
+  },
+
+  // Privacy Toggle
+  privacyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.base,
+    paddingHorizontal: spacing.md,
+    backgroundColor: palette.neutral[100],
+    borderRadius: 12,
+    marginVertical: spacing.base,
+    minHeight: 64,
+  },
+  privacyTextContainer: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+  privacyLabel: {
+    ...typography.body,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+  privacyDescription: {
+    ...typography.caption,
+    color: palette.text.light.secondary,
+    lineHeight: 18,
+  },
+
+  // Follow Requests
+  followRequestsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    backgroundColor: palette.primary[50],
+    borderRadius: 12,
+    marginBottom: spacing.lg,
+    minHeight: 56,
+    borderWidth: 1,
+    borderColor: palette.primary[200],
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      },
+    }),
+  },
+  followRequestsText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: palette.primary[900],
+    flex: 1,
+    marginLeft: spacing.sm,
+  },
+
+  // Request Item
+  requestItem: {
+    backgroundColor: palette.accent.white,
+    borderRadius: 12,
+    padding: spacing.base,
+    marginBottom: spacing.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+      },
+    }),
+  },
+  requestUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  requestAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: palette.neutral[200],
+  },
+  requestAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: palette.primary[200],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  requestTextContainer: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  requestUsername: {
+    ...typography.body,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+  requestTime: {
+    ...typography.caption,
+    color: palette.text.light.secondary,
+  },
+  requestActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  requestButton: {
+    flex: 1,
+  },
+
+  // Empty State
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxxl,
+    paddingHorizontal: spacing.xl,
+  },
+  emptyTitle: {
+    ...typography.h4,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  emptyDescription: {
+    ...typography.body,
+    color: palette.text.light.secondary,
+    textAlign: 'center',
   },
 });

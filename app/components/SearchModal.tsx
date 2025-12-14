@@ -32,9 +32,10 @@ interface UserResult {
 interface SearchModalProps {
   visible: boolean;
   onClose: () => void;
+  onUserPress?: (userId: string) => void;
 }
 
-export const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
+export const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose, onUserPress }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -285,7 +286,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) =>
                     activeOpacity={0.7}
                     accessibilityLabel={`View ${user.username || 'user'} profile`}
                     accessibilityRole="button"
-                    onPress={() => console.log('Navigate to user profile:', user.id)}
+                    onPress={() => onUserPress?.(user.id)}
                   >
                     {/* Profile Picture */}
                     {user.profile_picture_url ? (

@@ -7,6 +7,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import FriendsListScreen from '../screens/Social/FriendsListScreen';
 import FriendProfileScreen from '../screens/Social/FriendProfileScreen';
+import UserProfileScreen from '../screens/Social/UserProfileScreen';
 import AddFriendsScreen from '../screens/Social/AddFriendsScreen';
 import GroupRoundsScreen from '../screens/Social/GroupRoundsScreen';
 
@@ -17,6 +18,7 @@ export const SocialNavigator: React.FC = () => {
     <Stack.Navigator>
       <Stack.Screen name="FriendsList" component={FriendsListScreen} options={{ title: 'Friends' }} />
       <Stack.Screen name="FriendProfile" component={FriendProfileScreen} options={{ title: 'Profile' }} />
+      <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ title: 'Profile' }} />
       <Stack.Screen name="AddFriends" component={AddFriendsScreen} options={{ title: 'Add Friends' }} />
       <Stack.Screen name="GroupRounds" component={GroupRoundsScreen} options={{ title: 'Group Rounds' }} />
     </Stack.Navigator>

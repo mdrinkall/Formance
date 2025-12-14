@@ -14,6 +14,7 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { spacing, typography } from '@/styles';
 import { palette } from '@/theme/palette';
@@ -38,6 +39,7 @@ const SkeletonContent: React.FC<{ icon: string; title: string; description: stri
 );
 
 export default function CommunityScreen() {
+  const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState(0);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -56,6 +58,14 @@ export default function CommunityScreen() {
     if (newIndex >= 0 && newIndex < TABS.length && newIndex !== activeTab) {
       setActiveTab(newIndex);
     }
+  };
+
+  const handleUserPress = (userId: string) => {
+    setSearchModalVisible(false);
+    navigation.navigate('Social', {
+      screen: 'UserProfile',
+      params: { userId },
+    });
   };
 
   return (
@@ -132,7 +142,11 @@ export default function CommunityScreen() {
       </ScrollView>
 
       {/* Search Modal */}
-      <SearchModal visible={searchModalVisible} onClose={() => setSearchModalVisible(false)} />
+      <SearchModal
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+        onUserPress={handleUserPress}
+      />
     </View>
   );
 }
