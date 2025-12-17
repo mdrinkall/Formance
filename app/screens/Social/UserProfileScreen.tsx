@@ -27,6 +27,10 @@ import { AnalysisCarousel } from '../../components/AnalysisCarousel';
 import { useAuthContext } from '../../context/AuthContext';
 import { supabase } from '../../services/supabase';
 import { getUserRecordings, getRecording } from '../../services/recordingService';
+import { useBlocking } from '../../hooks/useBlocking';
+import { OverflowMenu, MenuAction } from '../../components/ui/OverflowMenu';
+import { BlockConfirmationModal } from '../../components/BlockConfirmationModal';
+import { getBlockedUsersFilter } from '../../services/blockingService';
 
 interface Profile {
   id: string;
@@ -74,6 +78,11 @@ export default function UserProfileScreen() {
   // Search modal state
   const [searchModalVisible, setSearchModalVisible] = useState(false);
 
+  // Overflow menu and blocking state
+  const [overflowMenuVisible, setOverflowMenuVisible] = useState(false);
+  const [blockModalVisible, setBlockModalVisible] = useState(false);
+  const { blockStatus, loading: blockLoading, blockUser, unblockUser } = useBlocking(userId);
+
   useEffect(() => {
     if (userId && currentUser) {
       loadProfileData();
@@ -113,10 +122,27 @@ export default function UserProfileScreen() {
       if (profileError) throw profileError;
       setProfile(profileData);
 
-      // Update navigation header with user's name
+      // Update navigation header with user's name and overflow menu
       if (profileData?.username) {
         navigation.setOptions({
           title: profileData.username,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => setOverflowMenuVisible(true)}
+              style={{
+                padding: spacing.sm,
+                marginRight: spacing.sm,
+                minHeight: 44,
+                minWidth: 44,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              accessibilityLabel="More options"
+              accessibilityRole="button"
+            >
+              <Ionicons name="ellipsis-horizontal" size={24} color={palette.text.light.primary} />
+            </TouchableOpacity>
+          ),
         });
       }
 
@@ -169,13 +195,22 @@ export default function UserProfileScreen() {
         }
       }
 
-      // Fetch user's community posts
-      const { data: postsData, error: postsError } = await supabase
+      // Fetch user's community posts with blocking filter
+      const blockedUsers = currentUser ? await getBlockedUsersFilter(currentUser.id) : [];
+
+      let postsQuery = supabase
         .from('community_posts')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(10);
+
+      // Apply blocking filter if there are blocked users
+      if (blockedUsers.length > 0) {
+        postsQuery = postsQuery.not('user_id', 'in', `(${blockedUsers.join(',')})`);
+      }
+
+      const { data: postsData, error: postsError } = await postsQuery;
 
       if (!postsError) setPosts(postsData || []);
 
@@ -190,6 +225,12 @@ export default function UserProfileScreen() {
 
   const handleFollow = async () => {
     if (!currentUser) return;
+
+    // Prevent following if blocked
+    if (blockStatus.isBlocked) {
+      console.log('Cannot follow blocked user');
+      return;
+    }
 
     try {
       setFollowLoading(true);
@@ -249,6 +290,12 @@ export default function UserProfileScreen() {
   const handleUnfollow = async () => {
     if (!currentUser) return;
 
+    // Prevent unfollowing if blocked
+    if (blockStatus.isBlocked) {
+      console.log('Cannot unfollow blocked user');
+      return;
+    }
+
     try {
       setFollowLoading(true);
 
@@ -291,6 +338,21 @@ export default function UserProfileScreen() {
     }
   };
 
+  const handleBlockConfirm = async () => {
+    try {
+      if (blockStatus.iBlockedThem) {
+        await unblockUser();
+      } else {
+        await blockUser();
+      }
+      setBlockModalVisible(false);
+      // Refresh profile data after blocking/unblocking
+      loadProfileData();
+    } catch (error) {
+      console.error('Error blocking/unblocking user:', error);
+    }
+  };
+
   const loadFollowers = async () => {
     try {
       setFollowersModalLoading(true);
@@ -305,7 +367,13 @@ export default function UserProfileScreen() {
 
       if (error) throw error;
 
-      const users = data?.map((item: any) => item.profiles).filter(Boolean) || [];
+      // Filter out blocked users
+      const blockedUsers = currentUser ? await getBlockedUsersFilter(currentUser.id) : [];
+      const users = data
+        ?.map((item: any) => item.profiles)
+        .filter(Boolean)
+        .filter((user: any) => !blockedUsers.includes(user.id)) || [];
+
       setFollowersModalUsers(users);
     } catch (error) {
       console.error('Error loading followers:', error);
@@ -329,7 +397,13 @@ export default function UserProfileScreen() {
 
       if (error) throw error;
 
-      const users = data?.map((item: any) => item.profiles).filter(Boolean) || [];
+      // Filter out blocked users
+      const blockedUsers = currentUser ? await getBlockedUsersFilter(currentUser.id) : [];
+      const users = data
+        ?.map((item: any) => item.profiles)
+        .filter(Boolean)
+        .filter((user: any) => !blockedUsers.includes(user.id)) || [];
+
       setFollowersModalUsers(users);
     } catch (error) {
       console.error('Error loading following:', error);
@@ -375,9 +449,11 @@ export default function UserProfileScreen() {
     }
   };
 
-  // Check if user can view private content
+  // Check if user can view private content and if blocked
   const isPrivateAccount = profile?.is_private === true;
   const canViewPrivateContent = !isPrivateAccount || isFollowing;
+  const isProfileBlocked = blockStatus.isBlocked; // Either direction
+  const canViewProfile = !isProfileBlocked && canViewPrivateContent;
 
   if (loading) {
     return (
@@ -487,8 +563,16 @@ export default function UserProfileScreen() {
           />
         )}
 
-        {/* Private Account Message or Content */}
-        {!canViewPrivateContent ? (
+        {/* Private Account Message, Blocked Profile, or Content */}
+        {isProfileBlocked ? (
+          <Card style={styles.privateCard}>
+            <Ionicons name="ban" size={64} color={palette.text.light.secondary} />
+            <Text style={styles.privateTitle}>Profile Unavailable</Text>
+            <Text style={styles.privateDescription}>
+              You cannot view this profile at this time
+            </Text>
+          </Card>
+        ) : !canViewPrivateContent ? (
           <Card style={styles.privateCard}>
             <Ionicons name="lock-closed" size={64} color={palette.text.light.secondary} />
             <Text style={styles.privateTitle}>This Account is Private</Text>
@@ -565,6 +649,30 @@ export default function UserProfileScreen() {
         visible={searchModalVisible}
         onClose={() => setSearchModalVisible(false)}
         onUserPress={handleUserPress}
+      />
+
+      {/* Overflow Menu */}
+      <OverflowMenu
+        visible={overflowMenuVisible}
+        onClose={() => setOverflowMenuVisible(false)}
+        actions={[
+          {
+            icon: blockStatus.iBlockedThem ? 'person-add' : 'ban',
+            label: blockStatus.iBlockedThem ? 'Unblock User' : 'Block User',
+            onPress: () => setBlockModalVisible(true),
+            destructive: !blockStatus.iBlockedThem,
+          },
+        ]}
+      />
+
+      {/* Block Confirmation Modal */}
+      <BlockConfirmationModal
+        visible={blockModalVisible}
+        onClose={() => setBlockModalVisible(false)}
+        onConfirm={handleBlockConfirm}
+        username={profile?.username || 'this user'}
+        isBlocked={blockStatus.iBlockedThem}
+        loading={blockLoading}
       />
     </View>
   );

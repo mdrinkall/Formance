@@ -20,6 +20,7 @@ import { spacing, typography } from '@/styles';
 import { palette } from '@/theme/palette';
 import { supabase } from '../services/supabase';
 import { Button } from './ui/Button';
+import { getBlockedUsersFilter } from '../services/blockingService';
 
 interface UserResult {
   id: string;
@@ -185,12 +186,22 @@ export const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose, onUs
       setLoading(true);
       setHasSearched(true);
 
-      // Search by username or bio (case-insensitive)
-      const { data, error } = await supabase
+      // Get blocked users first
+      const blockedUsers = currentUserId ? await getBlockedUsersFilter(currentUserId) : [];
+
+      // Build search query
+      let searchQuery = supabase
         .from('profiles')
         .select('id, username, profile_picture_url, bio')
         .or(`username.ilike.%${query}%,bio.ilike.%${query}%`)
         .limit(20);
+
+      // Apply blocking filter if there are blocked users
+      if (blockedUsers.length > 0) {
+        searchQuery = searchQuery.not('id', 'in', `(${blockedUsers.join(',')})`);
+      }
+
+      const { data, error } = await searchQuery;
 
       if (error) throw error;
 
