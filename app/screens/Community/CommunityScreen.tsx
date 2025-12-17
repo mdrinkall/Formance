@@ -38,11 +38,20 @@ const SkeletonContent: React.FC<{ icon: string; title: string; description: stri
   </View>
 );
 
-export default function CommunityScreen() {
+export default function CommunityScreen({ route }: any) {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState(0);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Auto-open search if navigated with openSearch param
+  useEffect(() => {
+    if (route?.params?.openSearch) {
+      setSearchModalVisible(true);
+      // Clear the param after opening to prevent re-opening on return
+      navigation.setParams({ openSearch: undefined });
+    }
+  }, [route?.params?.openSearch]);
 
   const handleTabPress = (index: number) => {
     setActiveTab(index);

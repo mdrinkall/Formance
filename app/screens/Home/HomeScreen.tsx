@@ -1,11 +1,11 @@
 /**
  * HomeScreen
- * Main dashboard/home screen with personalized content
- * Features both empty state (no data) and active state (with data)
+ * Main dashboard with editorial-inspired design
+ * Features magazine-style layout, sophisticated typography, and premium aesthetics
  */
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,19 +19,42 @@ export default function HomeScreen() {
   const { user } = useAuthContext();
   const navigation = useNavigation();
   const [hasData] = useState(false); // Change to true to see active state
+  const fadeAnim = new Animated.Value(0);
 
   // Extract first name from user metadata or use default
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.fullName || 'there';
   const firstName = fullName.split(' ')[0];
 
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+  }, []);
+
   return (
     <View style={styles.wrapper}>
+      {/* Decorative background elements */}
+      <View style={styles.backgroundDecor}>
+        <LinearGradient
+          colors={[palette.primary[50], 'transparent']}
+          style={styles.backgroundGradient}
+        />
+      </View>
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {hasData ? <ActiveUserView username={firstName} navigation={navigation} /> : <EmptyStateView username={firstName} navigation={navigation} />}
+        <Animated.View style={{ opacity: fadeAnim }}>
+          {hasData ? (
+            <ActiveUserView username={firstName} navigation={navigation} />
+          ) : (
+            <EmptyStateView username={firstName} navigation={navigation} />
+          )}
+        </Animated.View>
 
         {/* Footer Spacer */}
         <View style={styles.footerSpacer} />
@@ -44,88 +67,161 @@ export default function HomeScreen() {
 function EmptyStateView({ username, navigation }: { username: string; navigation: any }) {
   return (
     <>
-      {/* Section 1: Welcome Block */}
-      <Card style={styles.welcomeCard}>
-        <Text style={styles.welcomeTitle}>Welcome back {username}</Text>
-      </Card>
-
-      {/* Section 2: Quick Actions */}
-      <View style={styles.quickActionsContainer}>
-        <QuickActionCircle icon="trophy" label="Compete" />
-        <QuickActionCircle icon="chatbubbles" label="Discuss" />
-        <QuickActionCircle icon="book" label="Learn" />
-        <QuickActionCircle icon="bar-chart" label="History" />
+      {/* Section 1: Editorial Welcome Header */}
+      <View style={styles.heroSection}>
+        <View style={styles.welcomeHeader}>
+          <View style={styles.greetingAccent} />
+          <View style={styles.greetingContent}>
+            <Text style={styles.greetingLabel}>WELCOME BACK</Text>
+            <Text style={styles.greetingName}>{username}</Text>
+          </View>
+        </View>
+        <Text style={styles.heroSubtitle}>Your journey to mastery continues</Text>
       </View>
 
-      {/* Section 3: Main CTA */}
+      {/* Section 2: Premium Quick Actions Grid */}
+      <View style={styles.quickActionsGrid}>
+        <PremiumQuickAction
+          icon="trophy"
+          label="Compete"
+          description="Join challenges"
+          gradient={[palette.primary[700], palette.primary[500]]}
+        />
+        <PremiumQuickAction
+          icon="analytics"
+          label="Analyze"
+          description="Track progress"
+          gradient={[palette.primary[600], palette.primary[400]]}
+        />
+        <PremiumQuickAction
+          icon="people"
+          label="Community"
+          description="Connect & learn"
+          gradient={[palette.primary[500], palette.primary[300]]}
+        />
+        <PremiumQuickAction
+          icon="book"
+          label="Resources"
+          description="Expert tips"
+          gradient={[palette.primary[800], palette.primary[600]]}
+        />
+      </View>
+
+      {/* Section 3: Featured Hero CTA */}
       <TouchableOpacity
-        style={styles.recordCard}
+        style={styles.heroCard}
         accessibilityRole="button"
-        accessibilityLabel="Improve Your Rating - Record your swing"
-        activeOpacity={0.9}
+        accessibilityLabel="Start your swing analysis"
+        activeOpacity={0.95}
         onPress={() => navigation.navigate('Analysis')}
       >
         <ImageBackground
-          source={{ uri: 'https://twpouulzcwhhxhdilnbj.supabase.co/storage/v1/object/public/assets/widgets/rich-green-putting.jpg' }}
-          style={styles.recordImageBackground}
-          imageStyle={styles.recordImage}
+          source={{
+            uri: 'https://twpouulzcwhhxhdilnbj.supabase.co/storage/v1/object/public/assets/widgets/rich-green-putting.jpg',
+          }}
+          style={styles.heroImageBackground}
+          imageStyle={styles.heroImage}
         >
-          {/* Gradient overlay - bottom 35% */}
+          {/* Sophisticated gradient overlay */}
           <LinearGradient
-            colors={['transparent', 'transparent', 'rgba(0, 0, 0, 0.7)']}
-            locations={[0, 0.65, 1]}
-            style={styles.recordOverlay}
+            colors={[
+              'rgba(26, 77, 46, 0.3)',
+              'transparent',
+              'rgba(0, 0, 0, 0.85)',
+            ]}
+            locations={[0, 0.4, 1]}
+            style={styles.heroOverlay}
           />
 
-          {/* Text content */}
-          <View style={styles.recordTextContainer}>
-            <Text style={styles.recordCardTitle}>IMPROVE YOUR RATING</Text>
-            <Text style={styles.recordCardDescription}>
-              Our state of the art insight tool can dissect your swing and help you improve instantly
+          {/* Content with editorial layout */}
+          <View style={styles.heroContent}>
+            <View style={styles.heroTag}>
+              <View style={styles.heroTagDot} />
+              <Text style={styles.heroTagText}>AI-POWERED</Text>
+            </View>
+            <Text style={styles.heroTitle}>Perfect Your Swing</Text>
+            <Text style={styles.heroDescription}>
+              Advanced biomechanical analysis powered by cutting-edge AI
             </Text>
+            <View style={styles.heroArrow}>
+              <Ionicons name="arrow-forward" size={24} color={palette.accent.white} />
+            </View>
           </View>
         </ImageBackground>
       </TouchableOpacity>
 
-      {/* Section 4: Suggested For You */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Suggested For You</Text>
-        <TouchableOpacity>
-          <Text style={styles.seeAllText}>See All</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.horizontalScroll}
-        contentContainerStyle={styles.suggestedScrollContent}
-      >
-        {Array.from({ length: 10 }).map((_, index) => (
-          <SuggestedUserCard key={index} index={index} />
-        ))}
-      </ScrollView>
-
-      {/* Section 5: Subscription Banner */}
-      <TouchableOpacity
-        style={styles.subscriptionBanner}
-        accessibilityRole="button"
-        accessibilityLabel="Subscribe to premium"
-        activeOpacity={0.9}
-      >
-        <ImageBackground
-          source={{ uri: 'https://twpouulzcwhhxhdilnbj.supabase.co/storage/v1/object/public/assets/widgets/record-your-swing.jpg' }}
-          style={styles.subscriptionImageBackground}
-          imageStyle={styles.subscriptionImage}
-        >
-          <LinearGradient
-            colors={['transparent', 'rgba(0, 0, 0, 0.6)']}
-            locations={[0.5, 1]}
-            style={styles.subscriptionOverlay}
-          />
-          <View style={styles.subscriptionTextContainer}>
-            <Text style={styles.subscriptionTitle}>Go Premium</Text>
+      {/* Section 4: Editorial Community Section */}
+      <View style={styles.editorialSection}>
+        <View style={styles.editorialSectionHeader}>
+          <View style={styles.sectionAccent} />
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.editorialSectionTitle}>Connect & Grow</Text>
+            <Text style={styles.editorialSectionSubtitle}>
+              Join golfers on the same journey
+            </Text>
           </View>
-        </ImageBackground>
+          <TouchableOpacity
+            style={styles.seeAllButton}
+            onPress={() => navigation.navigate('Community', { openSearch: true })}
+            accessibilityRole="button"
+            accessibilityLabel="View all users and search for people"
+          >
+            <Text style={styles.seeAllText}>View All</Text>
+            <Ionicons name="arrow-forward" size={16} color={palette.primary[700]} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.horizontalScroll}
+          contentContainerStyle={styles.communityScrollContent}
+        >
+          {Array.from({ length: 10 }).map((_, index) => (
+            <PremiumUserCard key={index} index={index} />
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Section 5: Premium Subscription Card */}
+      <TouchableOpacity
+        style={styles.premiumCard}
+        accessibilityRole="button"
+        accessibilityLabel="Unlock premium features"
+        activeOpacity={0.95}
+      >
+        <LinearGradient
+          colors={[palette.primary[800], palette.primary[600], palette.primary[700]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.premiumGradient}
+        >
+          {/* Decorative pattern overlay */}
+          <View style={styles.premiumPattern}>
+            <View style={styles.premiumCircle1} />
+            <View style={styles.premiumCircle2} />
+          </View>
+
+          <View style={styles.premiumContent}>
+            <View style={styles.premiumBadge}>
+              <Ionicons name="diamond" size={16} color={palette.accent.white} />
+              <Text style={styles.premiumBadgeText}>PREMIUM</Text>
+            </View>
+            <Text style={styles.premiumTitle}>Unlock Your Full Potential</Text>
+            <Text style={styles.premiumDescription}>
+              Advanced analytics, personalized coaching, and unlimited analysis
+            </Text>
+            <View style={styles.premiumFeatures}>
+              <PremiumFeature text="Unlimited swing analysis" />
+              <PremiumFeature text="AI coaching insights" />
+              <PremiumFeature text="Pro drills library" />
+            </View>
+            <View style={styles.premiumCTA}>
+              <Text style={styles.premiumCTAText}>Start Free Trial</Text>
+              <Ionicons name="arrow-forward" size={20} color={palette.primary[900]} />
+            </View>
+          </View>
+        </LinearGradient>
       </TouchableOpacity>
     </>
   );
@@ -135,41 +231,80 @@ function EmptyStateView({ username, navigation }: { username: string; navigation
 function ActiveUserView({ username, navigation }: { username: string; navigation: any }) {
   return (
     <>
-      {/* Section 1: Personalized Welcome */}
-      <Card style={styles.welcomeCard}>
-        <Text style={styles.welcomeTitle}>Welcome back, {username}</Text>
-      </Card>
-
-      {/* Section 2: Swing Score Summary */}
-      <Card style={styles.scoreCard}>
-        <View style={styles.scoreHeader}>
-          <View>
-            <Text style={styles.scoreLabel}>Your Swing Score</Text>
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreValue}>82</Text>
-              <Text style={styles.scoreMax}>/100</Text>
-              <View style={styles.scoreBadge}>
-                <Ionicons name="arrow-up" size={16} color={palette.success} />
-                <Text style={styles.scoreBadgeText}>+6 this week</Text>
-              </View>
-            </View>
+      {/* Section 1: Personalized Welcome with Stats */}
+      <View style={styles.activeHeroSection}>
+        <View style={styles.welcomeHeader}>
+          <View style={styles.greetingAccent} />
+          <View style={styles.greetingContent}>
+            <Text style={styles.greetingLabel}>WELCOME BACK</Text>
+            <Text style={styles.greetingName}>{username}</Text>
           </View>
         </View>
-
-        <View style={styles.metricsGrid}>
-          <MetricItem label="Tempo" value="Good" status="success" />
-          <MetricItem label="Club Path" value="Slightly Out-To-In" status="warning" />
-          <MetricItem label="Face Angle" value="Needs Work" status="error" />
+        <View style={styles.streakBadge}>
+          <Ionicons name="flame" size={18} color="#FF6B35" />
+          <Text style={styles.streakText}>2 day streak</Text>
         </View>
+      </View>
+
+      {/* Section 2: Enhanced Swing Score Card */}
+      <Card style={styles.premiumScoreCard}>
+        <LinearGradient
+          colors={[palette.primary[50], palette.background.light]}
+          style={styles.scoreCardGradient}
+        >
+          <View style={styles.scoreCardHeader}>
+            <View>
+              <Text style={styles.scoreLabel}>YOUR SWING SCORE</Text>
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreValue}>82</Text>
+                <Text style={styles.scoreMax}>/100</Text>
+              </View>
+            </View>
+            <View style={styles.scoreTrend}>
+              <Ionicons name="trending-up" size={32} color={palette.primary[600]} />
+              <Text style={styles.scoreTrendText}>+6</Text>
+              <Text style={styles.scoreTrendLabel}>this week</Text>
+            </View>
+          </View>
+
+          <View style={styles.metricsGrid}>
+            <PremiumMetricItem label="Tempo" value="Good" status="success" icon="pulse" />
+            <PremiumMetricItem
+              label="Club Path"
+              value="Out-To-In"
+              status="warning"
+              icon="git-network"
+            />
+            <PremiumMetricItem
+              label="Face Angle"
+              value="Needs Work"
+              status="error"
+              icon="compass"
+            />
+          </View>
+        </LinearGradient>
       </Card>
 
-      {/* Section 3: Record CTA */}
-      <Button
-        title="Record New Swing"
-        variant="primary"
-        style={styles.recordCTA}
+      {/* Section 3: Prominent Record CTA */}
+      <TouchableOpacity
+        style={styles.recordCTACard}
+        activeOpacity={0.95}
         onPress={() => navigation.navigate('Analysis')}
-      />
+      >
+        <LinearGradient
+          colors={[palette.primary[700], palette.primary[600]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.recordCTAGradient}
+        >
+          <Ionicons name="videocam" size={28} color={palette.accent.white} />
+          <View style={styles.recordCTAContent}>
+            <Text style={styles.recordCTATitle}>Record New Swing</Text>
+            <Text style={styles.recordCTASubtitle}>Get instant AI feedback</Text>
+          </View>
+          <Ionicons name="arrow-forward-circle" size={32} color={palette.accent.white} />
+        </LinearGradient>
+      </TouchableOpacity>
 
       {/* Section 4: Personalized Drills */}
       <Text style={styles.sectionTitle}>Your Drills</Text>
@@ -229,20 +364,38 @@ function ActiveUserView({ username, navigation }: { username: string; navigation
   );
 }
 
-// ==================== REUSABLE COMPONENTS ====================
+// ==================== PREMIUM WIDGET COMPONENTS ====================
 
-function QuickActionCircle({ icon, label }: { icon: string; label: string }) {
+// Premium Quick Action with gradient
+function PremiumQuickAction({
+  icon,
+  label,
+  description,
+  gradient,
+}: {
+  icon: string;
+  label: string;
+  description: string;
+  gradient: string[];
+}) {
   return (
-    <TouchableOpacity style={styles.quickAction} activeOpacity={0.7}>
-      <View style={styles.quickActionCircle}>
-        <Ionicons name={icon as any} size={32} color={palette.accent.white} />
-      </View>
-      <Text style={styles.quickActionLabel}>{label}</Text>
+    <TouchableOpacity
+      style={styles.premiumQuickAction}
+      activeOpacity={0.9}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} - ${description}`}
+    >
+      <LinearGradient colors={gradient} style={styles.premiumQuickActionGradient}>
+        <Ionicons name={icon as any} size={24} color={palette.accent.white} />
+        <Text style={styles.premiumQuickActionLabel}>{label}</Text>
+        <Text style={styles.premiumQuickActionDescription}>{description}</Text>
+      </LinearGradient>
     </TouchableOpacity>
   );
 }
 
-function SuggestedUserCard({ index }: { index: number }) {
+// Premium User Card with elegant design
+function PremiumUserCard({ index }: { index: number }) {
   const names = [
     'Alex Johnson',
     'Sarah Miller',
@@ -256,32 +409,82 @@ function SuggestedUserCard({ index }: { index: number }) {
     'Jessica Martinez',
   ];
 
+  const scores = [87, 92, 78, 85, 90, 82, 88, 91, 79, 86];
+
   return (
-    <View style={styles.suggestedUserCard}>
-      <View style={styles.suggestedUserAvatar}>
-        <Text style={styles.suggestedUserInitials}>
-          {names[index].split(' ').map(n => n[0]).join('')}
-        </Text>
+    <TouchableOpacity style={styles.premiumUserCard} activeOpacity={0.9}>
+      <View style={styles.premiumUserCardContent}>
+        <View style={styles.premiumUserAvatar}>
+          <LinearGradient
+            colors={[palette.primary[600], palette.primary[400]]}
+            style={styles.premiumUserAvatarGradient}
+          >
+            <Text style={styles.premiumUserInitials}>
+              {names[index]
+                .split(' ')
+                .map(n => n[0])
+                .join('')}
+            </Text>
+          </LinearGradient>
+        </View>
+
+        <View style={styles.premiumUserInfo}>
+          <Text style={styles.premiumUserName} numberOfLines={1}>
+            {names[index]}
+          </Text>
+          <View style={styles.premiumUserStats}>
+            <Ionicons name="trophy" size={12} color={palette.primary[600]} />
+            <Text style={styles.premiumUserScore}>Score: {scores[index]}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.premiumFollowButton}>
+          <Ionicons name="add-circle" size={20} color={palette.primary[700]} />
+        </TouchableOpacity>
       </View>
-      <Text style={styles.suggestedUserName}>{names[index]}</Text>
-      <TouchableOpacity style={styles.followButton}>
-        <Text style={styles.followButtonText}>Follow</Text>
-      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+}
+
+// Premium Metric Item with icon
+function PremiumMetricItem({
+  label,
+  value,
+  status,
+  icon,
+}: {
+  label: string;
+  value: string;
+  status: 'success' | 'warning' | 'error';
+  icon: string;
+}) {
+  const statusConfig = {
+    success: { color: palette.success, bg: palette.success + '15' },
+    warning: { color: palette.warning, bg: palette.warning + '15' },
+    error: { color: palette.error, bg: palette.error + '15' },
+  };
+
+  const config = statusConfig[status];
+
+  return (
+    <View style={[styles.premiumMetricItem, { backgroundColor: config.bg }]}>
+      <View style={styles.premiumMetricHeader}>
+        <Ionicons name={icon as any} size={18} color={config.color} />
+        <Text style={styles.premiumMetricLabel}>{label}</Text>
+      </View>
+      <Text style={[styles.premiumMetricValue, { color: config.color }]}>{value}</Text>
     </View>
   );
 }
 
-function MetricItem({ label, value, status }: { label: string; value: string; status: 'success' | 'warning' | 'error' }) {
-  const statusColors = {
-    success: palette.success,
-    warning: palette.warning,
-    error: palette.error,
-  };
-
+// Premium Feature bullet point
+function PremiumFeature({ text }: { text: string }) {
   return (
-    <View style={styles.metricItem}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={[styles.metricValue, { color: statusColors[status] }]}>{value}</Text>
+    <View style={styles.premiumFeature}>
+      <View style={styles.premiumFeatureCheck}>
+        <Ionicons name="checkmark" size={14} color={palette.accent.white} />
+      </View>
+      <Text style={styles.premiumFeatureText}>{text}</Text>
     </View>
   );
 }
@@ -317,92 +520,318 @@ function CommunityItem({ text, icon }: { text: string; icon: string }) {
   );
 }
 
-// ==================== STYLES ====================
+// ==================== PREMIUM STYLES ====================
+
+// Helper for cross-platform shadows (avoids web deprecation warnings)
+const createShadow = (
+  iosShadow: { shadowColor: string; shadowOffset: { width: number; height: number }; shadowOpacity: number; shadowRadius: number },
+  androidElevation: number,
+  webBoxShadow: string
+) => {
+  if (Platform.OS === 'web') {
+    return { boxShadow: webBoxShadow };
+  } else if (Platform.OS === 'android') {
+    return { elevation: androidElevation };
+  } else {
+    return iosShadow;
+  }
+};
 
 const styles = StyleSheet.create({
+  // Base layout
   wrapper: {
     flex: 1,
-    backgroundColor: palette.accent.white,
+    backgroundColor: palette.background.light,
+  },
+  backgroundDecor: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 400,
+    zIndex: 0,
+  },
+  backgroundGradient: {
+    flex: 1,
+    opacity: 0.4,
+    pointerEvents: 'none',
   },
   container: {
     flex: 1,
+    zIndex: 1,
   },
   contentContainer: {
     paddingHorizontal: spacing.base,
-    paddingBottom: spacing.base,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.massive,
   },
   footerSpacer: {
-    height: spacing.xl,
+    height: spacing.massive,
   },
 
-  // Welcome Card
-  welcomeCard: {
-    marginTop: 0,
-    marginBottom: 0,
-    paddingBottom: 0,
-    paddingLeft: 0,
-    backgroundColor: palette.accent.white,
-  },
-  welcomeTitle: {
-    ...typography.h4,
-    textAlign: 'left',
-  },
-  welcomeSubtitle: {
-    ...typography.body,
-    color: palette.text.light.secondary,
-  },
-
-  // Record Card
-  recordCard: {
+  // Hero Section (Welcome)
+  heroSection: {
     marginBottom: spacing.xl,
-    borderRadius: 16,
-    overflow: 'hidden',
+  },
+  activeHeroSection: {
+    marginBottom: spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  welcomeHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.sm,
+  },
+  greetingAccent: {
+    width: 4,
+    height: 48,
+    backgroundColor: palette.primary[600],
+    borderRadius: 2,
+    marginRight: spacing.md,
+  },
+  greetingContent: {
+    flex: 1,
+  },
+  greetingLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    color: palette.primary[700],
+    marginBottom: spacing.xs - 2,
+  },
+  greetingName: {
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: -1,
+    color: palette.text.light.primary,
+    lineHeight: 38,
     ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
       web: {
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        cursor: 'pointer',
-      },
+        textShadow: '0 2px 4px rgba(26, 77, 46, 0.08)',
+      } as any,
     }),
   },
-  recordImageBackground: {
-    width: '100%',
-    aspectRatio: 1,
-    justifyContent: 'flex-end',
+  heroSubtitle: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: palette.text.light.secondary,
+    letterSpacing: 0.2,
+    marginLeft: spacing.md + 4,
   },
-  recordImage: {
-    borderRadius: 16,
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF6B35' + '15',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FF6B35' + '30',
   },
-  recordOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  recordTextContainer: {
-    padding: spacing.base,
-    zIndex: 1,
-  },
-  recordCardTitle: {
-    ...typography.label,
-    fontSize: 18,
-    fontWeight: '500',
-    letterSpacing: 1.5,
-    color: palette.accent.white,
-    marginBottom: spacing.xs,
-  },
-  recordCardDescription: {
-    ...typography.body,
-    color: palette.accent.white,
-    lineHeight: 22,
+  streakText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF6B35',
+    marginLeft: spacing.xs,
   },
 
-  // Section Titles
+  // Premium Quick Actions Grid
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  premiumQuickAction: {
+    flex: 1,
+    minWidth: '47%',
+    maxWidth: '48%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...createShadow(
+      {
+        shadowColor: palette.primary[900],
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      4,
+      '0 4px 12px rgba(26, 77, 46, 0.15)'
+    ),
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        ':hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 6px 16px rgba(26, 77, 46, 0.25)',
+        },
+      } as any,
+    }),
+  },
+  premiumQuickActionGradient: {
+    padding: spacing.base,
+    minHeight: 110,
+    justifyContent: 'space-between',
+  },
+  premiumQuickActionLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.accent.white,
+    marginTop: spacing.sm,
+    letterSpacing: 0.3,
+  },
+  premiumQuickActionDescription: {
+    fontSize: 12,
+    color: palette.accent.white,
+    opacity: 0.9,
+    marginTop: spacing.xs - 2,
+  },
+
+  // Hero Card (Main CTA)
+  heroCard: {
+    marginBottom: spacing.xl,
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...createShadow(
+      {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
+      },
+      8,
+      '0 8px 24px rgba(0, 0, 0, 0.25)'
+    ),
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        ':hover': {
+          transform: 'scale(1.02)',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.3)',
+        },
+      } as any,
+    }),
+  },
+  heroImageBackground: {
+    width: '100%',
+    aspectRatio: 0.9,
+    justifyContent: 'flex-end',
+  },
+  heroImage: {
+    borderRadius: 20,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroContent: {
+    padding: spacing.lg,
+    zIndex: 1,
+  },
+  heroTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 20,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  heroTagDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: palette.accent.white,
+    marginRight: spacing.sm,
+  },
+  heroTagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: palette.accent.white,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: palette.accent.white,
+    marginBottom: spacing.sm,
+    letterSpacing: -0.5,
+    lineHeight: 34,
+  },
+  heroDescription: {
+    fontSize: 15,
+    color: palette.accent.white,
+    lineHeight: 22,
+    opacity: 0.95,
+    paddingRight: spacing.massive, // Prevent overlap with arrow button
+  },
+  heroArrow: {
+    position: 'absolute',
+    bottom: spacing.lg,
+    right: spacing.lg,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+
+  // Editorial Section Headers
+  editorialSection: {
+    marginBottom: spacing.xl,
+  },
+  editorialSectionHeader: {
+    marginBottom: spacing.base,
+  },
+  sectionAccent: {
+    width: 48,
+    height: 3,
+    backgroundColor: palette.primary[600],
+    borderRadius: 2,
+    marginBottom: spacing.sm,
+  },
+  sectionTitleContainer: {
+    marginBottom: spacing.xs,
+  },
+  editorialSectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: palette.text.light.primary,
+    letterSpacing: -0.5,
+    marginBottom: spacing.xs - 2,
+  },
+  editorialSectionSubtitle: {
+    fontSize: 14,
+    color: palette.text.light.secondary,
+    lineHeight: 20,
+  },
+  seeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 8,
+    backgroundColor: palette.primary[50],
+    marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: palette.primary[700],
+    marginRight: spacing.xs,
+  },
+
+  // Section Titles (simple)
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -411,265 +840,366 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base,
   },
   sectionTitle: {
-    ...typography.h4,
-  },
-  seeAllText: {
-    ...typography.body,
-    color: palette.primary[700],
+    fontSize: 20,
+    fontWeight: '700',
+    color: palette.text.light.primary,
+    letterSpacing: -0.3,
   },
 
   // Horizontal Scroll
   horizontalScroll: {
     marginBottom: spacing.base,
   },
+  communityScrollContent: {
+    paddingRight: spacing.base,
+    paddingLeft: spacing.xs,
+    paddingVertical: spacing.base, // Add vertical padding for shadow visibility
+    gap: spacing.md,
+  },
   horizontalScrollContent: {
     paddingRight: spacing.base,
-    gap: spacing.base,
+    gap: spacing.md,
   },
 
-  // Quick Actions
-  quickActionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: spacing.xl,
-    paddingHorizontal: 0,
-  },
-  quickAction: {
-    alignItems: 'center',
-    ...Platform.select({
-      web: {
-        cursor: 'pointer',
-      },
-    }),
-  },
-  quickActionCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: palette.primary[900],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
-      web: {
-        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      },
-    }),
-  },
-  quickActionLabel: {
-    ...typography.caption,
-    color: palette.text.light.primary,
-  },
-
-  // Suggested Users
-  suggestedScrollContent: {
-    paddingRight: spacing.base,
-    paddingVertical: spacing.sm,
-    paddingLeft: spacing.sm,
-  },
-  suggestedUserCard: {
-    width: 140,
-    backgroundColor: palette.accent.white,
-    borderRadius: 12,
-    padding: spacing.base,
-    marginRight: spacing.base,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: palette.neutral[200],
-    flex: 1,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-      web: {
-        boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-      },
-    }),
-  },
-  suggestedUserAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: palette.primary[200],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  suggestedUserInitials: {
-    ...typography.h4,
-    color: palette.primary[900],
-  },
-  suggestedUserName: {
-    ...typography.label,
-    textAlign: 'center',
-    marginBottom: spacing.base,
-  },
-  followButton: {
-    backgroundColor: palette.primary[900],
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.xs,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  followButtonText: {
-    ...typography.label,
-    color: palette.accent.white,
-    fontSize: 12,
-  },
-
-  // Subscription Banner
-  subscriptionBanner: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.base,
+  // Premium User Cards
+  premiumUserCard: {
+    width: 200,
+    backgroundColor: palette.background.light,
     borderRadius: 16,
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: palette.primary[100],
+    ...createShadow(
+      {
+        shadowColor: palette.primary[900],
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
       },
-      android: {
-        elevation: 6,
-      },
+      3,
+      '0 4px 12px rgba(26, 77, 46, 0.1)'
+    ),
+    ...Platform.select({
       web: {
-        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
         cursor: 'pointer',
-      },
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        ':hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 8px 20px rgba(26, 77, 46, 0.15)',
+        },
+      } as any,
     }),
   },
-  subscriptionImageBackground: {
+  premiumUserCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+  },
+  premiumUserAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginRight: spacing.md,
+  },
+  premiumUserAvatarGradient: {
     width: '100%',
-    aspectRatio: 16 / 9,
-    justifyContent: 'flex-end',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  subscriptionImage: {
+  premiumUserInitials: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.accent.white,
+  },
+  premiumUserInfo: {
+    flex: 1,
+  },
+  premiumUserName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: palette.text.light.primary,
+    marginBottom: spacing.xs - 2,
+  },
+  premiumUserStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  premiumUserScore: {
+    fontSize: 12,
+    color: palette.text.light.secondary,
+    marginLeft: spacing.xs - 2,
+  },
+  premiumFollowButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 16,
+    backgroundColor: palette.primary[50],
   },
-  subscriptionOverlay: {
+
+  // Premium Subscription Card
+  premiumCard: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...createShadow(
+      {
+        shadowColor: palette.primary[900],
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+      },
+      8,
+      '0 8px 24px rgba(26, 77, 46, 0.3)'
+    ),
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'transform 0.3s ease',
+        ':hover': {
+          transform: 'scale(1.02)',
+        },
+      } as any,
+    }),
+  },
+  premiumGradient: {
+    padding: spacing.lg,
+    minHeight: 280,
+    position: 'relative',
+  },
+  premiumPattern: {
     ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
   },
-  subscriptionTextContainer: {
-    padding: spacing.base,
+  premiumCircle1: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    top: -50,
+    right: -30,
+  },
+  premiumCircle2: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    bottom: -40,
+    left: -20,
+  },
+  premiumContent: {
     zIndex: 1,
   },
-  subscriptionTitle: {
-    ...typography.h3,
-    color: palette.accent.white,
-    marginBottom: spacing.xs,
-  },
-  subscriptionDescription: {
-    ...typography.body,
-    color: palette.accent.white,
-  },
-
-  // Empty States
-  emptyCard: {
+  premiumBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 16,
     marginBottom: spacing.base,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  emptyTitle: {
-    ...typography.h4,
-    marginTop: spacing.base,
-    marginBottom: spacing.xs,
+  premiumBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: palette.accent.white,
+    marginLeft: spacing.xs,
   },
-  emptyDescription: {
-    ...typography.body,
-    color: palette.text.light.secondary,
-    textAlign: 'center',
+  premiumTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: palette.accent.white,
+    marginBottom: spacing.sm,
+    letterSpacing: -0.5,
+    lineHeight: 32,
   },
-
-  // Community Card
-  communityCard: {
-    marginBottom: spacing.base,
-    backgroundColor: palette.primary[50],
-    borderLeftWidth: 4,
-    borderLeftColor: palette.primary[700],
+  premiumDescription: {
+    fontSize: 15,
+    color: palette.accent.white,
+    lineHeight: 22,
+    opacity: 0.95,
+    marginBottom: spacing.lg,
   },
-  communityTitle: {
-    ...typography.h4,
-    marginBottom: spacing.xs,
+  premiumFeatures: {
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
-  communityDescription: {
-    ...typography.body,
-    color: palette.text.light.secondary,
+  premiumFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-
-  // Score Card (Active State)
-  scoreCard: {
-    marginBottom: spacing.base,
+  premiumFeatureCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  premiumFeatureText: {
+    fontSize: 14,
+    color: palette.accent.white,
+    lineHeight: 20,
+  },
+  premiumCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: palette.accent.white,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    borderRadius: 12,
+    marginTop: spacing.xs,
   },
-  scoreHeader: {
+  premiumCTAText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.primary[900],
+  },
+
+  // Premium Score Card (Active State)
+  premiumScoreCard: {
     marginBottom: spacing.base,
+    overflow: 'hidden',
+  },
+  scoreCardGradient: {
+    padding: spacing.base,
+    borderRadius: 16,
+  },
+  scoreCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.lg,
   },
   scoreLabel: {
-    ...typography.label,
-    color: palette.text.light.secondary,
-    marginBottom: spacing.xs,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: palette.primary[700],
+    marginBottom: spacing.sm,
   },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   scoreValue: {
-    ...typography.h1,
+    fontSize: 48,
+    fontWeight: '700',
     color: palette.primary[900],
+    letterSpacing: -2,
   },
   scoreMax: {
-    ...typography.h3,
+    fontSize: 24,
+    fontWeight: '600',
     color: palette.text.light.secondary,
     marginLeft: spacing.xs,
   },
-  scoreBadge: {
-    flexDirection: 'row',
+  scoreTrend: {
     alignItems: 'center',
-    backgroundColor: palette.success + '20',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    backgroundColor: palette.background.light,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: 12,
-    marginLeft: spacing.base,
+    borderWidth: 1,
+    borderColor: palette.primary[100],
   },
-  scoreBadgeText: {
-    ...typography.caption,
-    color: palette.success,
-    marginLeft: spacing.xs,
+  scoreTrendText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: palette.primary[600],
+    marginTop: spacing.xs - 2,
+  },
+  scoreTrendLabel: {
+    fontSize: 11,
+    color: palette.text.light.secondary,
+    marginTop: spacing.xs - 2,
   },
 
-  // Metrics Grid
+  // Premium Metrics Grid
   metricsGrid: {
-    gap: spacing.base,
+    gap: spacing.md,
   },
-  metricItem: {
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.border.light,
+  premiumMetricItem: {
+    padding: spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  metricLabel: {
-    ...typography.label,
+  premiumMetricHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: spacing.xs,
   },
-  metricValue: {
-    ...typography.body,
+  premiumMetricLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: palette.text.light.primary,
+    marginLeft: spacing.sm,
+  },
+  premiumMetricValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+
+  // Record CTA Card (Active State)
+  recordCTACard: {
+    marginBottom: spacing.lg,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...createShadow(
+      {
+        shadowColor: palette.primary[900],
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      6,
+      '0 6px 16px rgba(26, 77, 46, 0.25)'
+    ),
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'transform 0.2s ease',
+        ':hover': {
+          transform: 'scale(1.02)',
+        },
+      } as any,
+    }),
+  },
+  recordCTAGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.base,
+    minHeight: 72,
+  },
+  recordCTAContent: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  recordCTATitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: palette.accent.white,
+    letterSpacing: -0.3,
+  },
+  recordCTASubtitle: {
+    fontSize: 13,
+    color: palette.accent.white,
+    opacity: 0.9,
+    marginTop: spacing.xs - 2,
   },
 
   // Record CTA Button
@@ -783,5 +1313,5 @@ const styles = StyleSheet.create({
   streakText: {
     ...typography.body,
     color: palette.primary[900],
-  },
+  }
 });

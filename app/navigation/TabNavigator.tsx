@@ -449,20 +449,16 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     width: '100%',
     maxWidth: 400,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-      },
-      web: {
-        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      },
-    }),
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }
+      : Platform.OS === 'android'
+      ? { elevation: 8 }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 8,
+        }),
   },
   deleteModalHeader: {
     alignItems: 'center',

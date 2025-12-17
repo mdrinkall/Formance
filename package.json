@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@callstack/liquid-glass": "^0.6.1",
+    "@expo-google-fonts/crimson-pro": "^0.4.2",
     "@expo-google-fonts/inter": "^0.2.3",
     "@expo-google-fonts/lato": "^0.2.3",
     "@expo-google-fonts/playfair-display": "^0.2.3",
