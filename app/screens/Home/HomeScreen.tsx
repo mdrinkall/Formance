@@ -4,7 +4,7 @@
  * Features magazine-style layout, sophisticated typography, and premium aesthetics
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const { user } = useAuthContext();
   const navigation = useNavigation();
   const [hasData] = useState(false); // Change to true to see active state
-  const fadeAnim = new Animated.Value(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Extract first name from user metadata or use default
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.fullName || 'there';
@@ -31,15 +31,16 @@ export default function HomeScreen() {
       duration: 600,
       useNativeDriver: Platform.OS !== 'web',
     }).start();
-  }, []);
+  }, [fadeAnim]);
 
   return (
     <View style={styles.wrapper}>
       {/* Decorative background elements */}
-      <View style={styles.backgroundDecor}>
+      <View style={styles.backgroundDecor} pointerEvents="none">
         <LinearGradient
           colors={[palette.primary[50], 'transparent']}
           style={styles.backgroundGradient}
+          pointerEvents="none"
         />
       </View>
 
@@ -554,7 +555,6 @@ const styles = StyleSheet.create({
   backgroundGradient: {
     flex: 1,
     opacity: 0.4,
-    pointerEvents: 'none',
   },
   container: {
     flex: 1,
@@ -603,8 +603,8 @@ const styles = StyleSheet.create({
   },
   greetingName: {
     fontSize: 32,
-    fontWeight: '700',
-    letterSpacing: -1,
+    fontWeight: '600',
+    letterSpacing: -0.8,
     color: palette.text.light.primary,
     lineHeight: 38,
     ...Platform.select({

@@ -4,8 +4,9 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Animated } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SelectionCard } from '../../components/ui/SelectionCard';
 import { AnalysisStackParamList, ClubType } from '../../types/analysis';
@@ -75,18 +76,57 @@ export default function ClubSelectionScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.wrapper}>
+      {/* Decorative background elements */}
+      <View style={styles.backgroundDecor} pointerEvents="none">
+        <LinearGradient
+          colors={[palette.primary[700], 'transparent']}
+          style={styles.backgroundGradient}
+          pointerEvents="none"
+        />
+        <View style={styles.decorCircle1} />
+        <View style={styles.decorCircle2} />
+      </View>
+
       {/* Progress Indicator */}
       <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressSegment, styles.progressActive]} />
-          <View style={[styles.progressSegment, styles.progressActive]} />
-          <View style={styles.progressSegment} />
+        <View style={styles.progressSteps}>
+          <View style={styles.progressStep}>
+            <View style={[styles.progressDot, styles.progressDotComplete]}>
+              <Ionicons name="checkmark" size={14} color={palette.primary[900]} />
+            </View>
+            <Text style={[styles.progressLabel, styles.progressLabelComplete]}>Video</Text>
+          </View>
+          <View style={[styles.progressLine, styles.progressLineActive]} />
+          <View style={styles.progressStep}>
+            <View style={[styles.progressDot, styles.progressDotActive]}>
+              <Ionicons name="golf" size={12} color={palette.primary[900]} />
+            </View>
+            <Text style={[styles.progressLabel, styles.progressLabelActive]}>Club</Text>
+          </View>
+          <View style={styles.progressLine} />
+          <View style={styles.progressStep}>
+            <View style={styles.progressDot} />
+            <Text style={styles.progressLabel}>Shape</Text>
+          </View>
         </View>
       </View>
 
+      {/* Editorial Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>What club are you using?</Text>
-        <Text style={styles.subtitle}>For beginners we recommend using a 7-iron</Text>
+        <View style={styles.editorialHeader}>
+          <View style={styles.headerAccent} />
+          <View style={styles.headerContent}>
+            <Text style={styles.headerLabel}>STEP 2</Text>
+            <Text style={styles.title}>Select Your Club</Text>
+            <Text style={styles.subtitle}>Choose the club you used for this swing</Text>
+          </View>
+        </View>
+
+        {/* Beginner Tip */}
+        <View style={styles.tipBadge}>
+          <Ionicons name="information-circle" size={16} color={palette.secondary[500]} />
+          <Text style={styles.tipBadgeText}>Recommended for beginners: 7-iron</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -100,19 +140,36 @@ export default function ClubSelectionScreen({ route, navigation }: Props) {
             return (
               <View key={category.id} style={styles.accordionSection}>
                 <TouchableOpacity
-                  style={styles.accordionHeader}
+                  style={[styles.accordionHeader, isExpanded && styles.accordionHeaderExpanded]}
                   onPress={() => toggleSection(category.id)}
-                  activeOpacity={0.7}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${category.title} - ${isExpanded ? 'Collapse' : 'Expand'}`}
                 >
-                  <View style={styles.accordionHeaderContent}>
-                    <Text style={styles.accordionTitle}>{category.title}</Text>
-                    <Ionicons
-                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color={palette.accent.white}
-                    />
-                  </View>
-                  <Text style={styles.accordionDescription}>{category.description}</Text>
+                  <LinearGradient
+                    colors={
+                      isExpanded
+                        ? ['rgba(233, 229, 214, 0.15)', 'rgba(233, 229, 214, 0.08)']
+                        : ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.accordionGradient}
+                  >
+                    <View style={styles.accordionHeaderContent}>
+                      <Text style={[styles.accordionTitle, isExpanded && styles.accordionTitleExpanded]}>
+                        {category.title}
+                      </Text>
+                      <View style={[styles.chevronContainer, isExpanded && styles.chevronContainerExpanded]}>
+                        <Ionicons
+                          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                          size={20}
+                          color={isExpanded ? palette.secondary[500] : palette.accent.white}
+                        />
+                      </View>
+                    </View>
+                    <Text style={styles.accordionDescription}>{category.description}</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
 
                 {isExpanded && (
@@ -157,6 +214,21 @@ export default function ClubSelectionScreen({ route, navigation }: Props) {
   );
 }
 
+// Helper for cross-platform shadows
+const createShadow = (
+  iosShadow: { shadowColor: string; shadowOffset: { width: number; height: number }; shadowOpacity: number; shadowRadius: number },
+  androidElevation: number,
+  webBoxShadow: string
+) => {
+  if (Platform.OS === 'web') {
+    return { boxShadow: webBoxShadow };
+  } else if (Platform.OS === 'android') {
+    return { elevation: androidElevation };
+  } else {
+    return iosShadow;
+  }
+};
+
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
@@ -168,44 +240,170 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  progressContainer: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    backgroundColor: palette.primary[900],
+  backgroundDecor: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 500,
+    zIndex: 0,
+    overflow: 'hidden',
   },
-  progressBar: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    alignItems: 'center',
-  },
-  progressSegment: {
+  backgroundGradient: {
     flex: 1,
-    height: 3,
-    backgroundColor: 'rgba(233, 229, 214, 0.2)',
-    borderRadius: 2,
+    opacity: 0.3,
   },
-  progressActive: {
+  decorCircle1: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(233, 229, 214, 0.03)',
+    top: -100,
+    right: -50,
+  },
+  decorCircle2: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(233, 229, 214, 0.02)',
+    top: 200,
+    left: -30,
+  },
+  progressContainer: {
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  progressSteps: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  progressStep: {
+    alignItems: 'center',
+    gap: spacing.xs,
+    flex: 0,
+  },
+  progressDot: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(233, 229, 214, 0.15)',
+    borderWidth: 2,
+    borderColor: 'rgba(233, 229, 214, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressDotActive: {
     backgroundColor: palette.secondary[500],
+    borderColor: palette.secondary[500],
+    ...createShadow(
+      {
+        shadowColor: palette.secondary[500],
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      3,
+      '0 2px 8px rgba(233, 229, 214, 0.4)'
+    ),
+  },
+  progressDotComplete: {
+    backgroundColor: palette.secondary[500],
+    borderColor: palette.secondary[500],
+    opacity: 0.6,
+  },
+  progressLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: 'rgba(233, 229, 214, 0.2)',
+    marginHorizontal: spacing.base,
+    marginTop: 15,
+  },
+  progressLineActive: {
+    backgroundColor: palette.secondary[500],
+  },
+  progressLabel: {
+    ...typography.caption,
+    fontSize: 11,
+    color: palette.accent.white,
+    opacity: 0.6,
+    fontWeight: '500',
+  },
+  progressLabelActive: {
+    opacity: 1,
+    color: palette.secondary[500],
+    fontWeight: '600',
+  },
+  progressLabelComplete: {
+    opacity: 0.7,
+    color: palette.accent.white,
+    fontWeight: '500',
   },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxxl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
     flexShrink: 0,
+    zIndex: 1,
+  },
+  editorialHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.base,
+  },
+  headerAccent: {
+    width: 4,
+    height: 64,
+    backgroundColor: palette.secondary[500],
+    borderRadius: 2,
+    marginRight: spacing.md,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    color: palette.secondary[500],
+    marginBottom: spacing.xs - 2,
   },
   title: {
-    ...typography.h4,
-    fontWeight: '400',
+    fontSize: 24,
+    fontWeight: '600',
     color: palette.accent.white,
-    textAlign: 'left',
+    marginBottom: spacing.xs,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    ...typography.caption,
+    ...typography.body,
+    fontSize: 14,
     color: palette.accent.white,
-    opacity: 0.6,
-    marginTop: spacing.sm,
-    textAlign: 'left',
+    opacity: 0.7,
+    lineHeight: 20,
+  },
+  tipBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(233, 229, 214, 0.1)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(233, 229, 214, 0.25)',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+  },
+  tipBadgeText: {
+    ...typography.caption,
+    fontSize: 12,
+    color: palette.accent.white,
+    opacity: 0.9,
   },
   container: {
     flex: 1,
@@ -225,16 +423,46 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   accordionHeader: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 12,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...createShadow(
+      {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      2,
+      '0 2px 8px rgba(0, 0, 0, 0.15)'
+    ),
     ...Platform.select({
       web: {
         cursor: 'pointer',
-      },
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        ':hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+        },
+      } as any,
     }),
+  },
+  accordionHeaderExpanded: {
+    ...createShadow(
+      {
+        shadowColor: palette.secondary[500],
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+      },
+      3,
+      '0 2px 12px rgba(233, 229, 214, 0.2)'
+    ),
+  },
+  accordionGradient: {
+    padding: spacing.base,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 16,
   },
   accordionHeaderContent: {
     flexDirection: 'row',
@@ -242,15 +470,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   accordionTitle: {
-    ...typography.h4,
-    fontWeight: '500',
+    fontSize: 18,
+    fontWeight: '600',
     color: palette.accent.white,
+    letterSpacing: -0.3,
+    flex: 1,
+  },
+  accordionTitleExpanded: {
+    color: palette.secondary[500],
+  },
+  chevronContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.sm,
+  },
+  chevronContainerExpanded: {
+    backgroundColor: 'rgba(233, 229, 214, 0.2)',
   },
   accordionDescription: {
     ...typography.caption,
+    fontSize: 13,
     color: palette.accent.white,
-    opacity: 0.7,
-    marginTop: spacing.xs,
+    opacity: 0.8,
+    marginTop: spacing.sm,
+    lineHeight: 18,
   },
   accordionContent: {
     paddingTop: spacing.md,

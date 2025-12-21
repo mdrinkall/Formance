@@ -3,8 +3,8 @@
  * Select and upload swing video
  */
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, Image, Animated } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -93,10 +93,16 @@ export default function VideoUploadScreen({ navigation }: Props) {
   const [recentVideos, setRecentVideos] = useState<RecentVideo[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [showAllVideos, setShowAllVideos] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     fetchRecentVideos();
-  }, []);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+  }, [fadeAnim]);
 
   const fetchRecentVideos = async () => {
     if (!user?.id) return;
@@ -226,12 +232,36 @@ export default function VideoUploadScreen({ navigation }: Props) {
 
   return (
     <View style={styles.wrapper}>
+      {/* Decorative background elements */}
+      <View style={styles.backgroundDecor} pointerEvents="none">
+        <LinearGradient
+          colors={[palette.primary[700], 'transparent']}
+          style={styles.backgroundGradient}
+          pointerEvents="none"
+        />
+        <View style={styles.decorCircle1} />
+        <View style={styles.decorCircle2} />
+      </View>
+
       {/* Progress Indicator */}
       <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressSegment, styles.progressActive]} />
-          <View style={styles.progressSegment} />
-          <View style={styles.progressSegment} />
+        <View style={styles.progressSteps}>
+          <View style={styles.progressStep}>
+            <View style={[styles.progressDot, styles.progressDotActive]}>
+              <Ionicons name="videocam" size={12} color={palette.primary[900]} />
+            </View>
+            <Text style={[styles.progressLabel, styles.progressLabelActive]}>Video</Text>
+          </View>
+          <View style={[styles.progressLine, styles.progressLineActive]} />
+          <View style={styles.progressStep}>
+            <View style={styles.progressDot} />
+            <Text style={styles.progressLabel}>Club</Text>
+          </View>
+          <View style={styles.progressLine} />
+          <View style={styles.progressStep}>
+            <View style={styles.progressDot} />
+            <Text style={styles.progressLabel}>Shape</Text>
+          </View>
         </View>
       </View>
 
@@ -240,7 +270,7 @@ export default function VideoUploadScreen({ navigation }: Props) {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
+        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -255,16 +285,40 @@ export default function VideoUploadScreen({ navigation }: Props) {
 
             {/* Video Selection */}
             <View style={styles.recentSection}>
-              <Text style={styles.recentTitle}>What video do you want to analyse?</Text>
-
-              {/* Tip Section */}
-              <View style={styles.tipContainer}>
-                <Ionicons name="bulb-outline" size={18} color={palette.secondary[500]} />
-                <Text style={styles.tipText}>
-                  <Text style={styles.tipLabel}>Tip: </Text>
-                  The AI improves its accuracy by over 70% when you use a slow-motion video
-                </Text>
+              {/* Editorial Header */}
+              <View style={styles.editorialHeader}>
+                <View style={styles.headerAccent} />
+                <View style={styles.headerContent}>
+                  <Text style={styles.headerLabel}>STEP 1</Text>
+                  <Text style={styles.recentTitle}>Select Your Swing Video</Text>
+                  <Text style={styles.headerSubtitle}>Choose from recent uploads or add a new video</Text>
+                </View>
               </View>
+
+              {/* Premium Tip Card */}
+              <TouchableOpacity
+                style={styles.tipCard}
+                activeOpacity={0.95}
+                accessibilityRole="button"
+                accessibilityLabel="Pro tip for better analysis"
+              >
+                <LinearGradient
+                  colors={[palette.secondary[500] + '20', palette.secondary[500] + '10']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.tipGradient}
+                >
+                  <View style={styles.tipIconContainer}>
+                    <Ionicons name="bulb" size={24} color={palette.secondary[500]} />
+                  </View>
+                  <View style={styles.tipContent}>
+                    <Text style={styles.tipTitle}>Pro Tip</Text>
+                    <Text style={styles.tipText}>
+                      Use slow-motion video to improve AI accuracy by over 70%
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
 
               {loadingRecent ? (
                 <Text style={styles.loadingText}>Loading videos...</Text>
@@ -277,15 +331,28 @@ export default function VideoUploadScreen({ navigation }: Props) {
                       onPress={handlePickVideo}
                       activeOpacity={0.8}
                       disabled={loading}
+                      accessibilityRole="button"
+                      accessibilityLabel="Upload new swing video"
                     >
-                      <View style={styles.uploadCardContent}>
-                        <Ionicons
-                          name="add-circle-outline"
-                          size={48}
-                          color={palette.secondary[500]}
-                        />
-                        <Text style={styles.uploadCardText}>Upload Video</Text>
-                      </View>
+                      <LinearGradient
+                        colors={['rgba(233, 229, 214, 0.1)', 'rgba(233, 229, 214, 0.05)']}
+                        style={styles.uploadCardGradient}
+                      >
+                        <View style={styles.uploadIconContainer}>
+                          <LinearGradient
+                            colors={[palette.secondary[500], palette.secondary[600]]}
+                            style={styles.uploadIconGradient}
+                          >
+                            <Ionicons
+                              name="add"
+                              size={32}
+                              color={palette.primary[900]}
+                            />
+                          </LinearGradient>
+                        </View>
+                        <Text style={styles.uploadCardText}>Upload New</Text>
+                        <Text style={styles.uploadCardSubtext}>From camera roll</Text>
+                      </LinearGradient>
                     </TouchableOpacity>
 
                     {/* Recent Videos */}
@@ -348,11 +415,26 @@ export default function VideoUploadScreen({ navigation }: Props) {
                 </>
               )}
             </View>
-          </View>
-        </ScrollView>
+        </Animated.View>
+      </ScrollView>
     </View>
   );
 }
+
+// Helper for cross-platform shadows
+const createShadow = (
+  iosShadow: { shadowColor: string; shadowOffset: { width: number; height: number }; shadowOpacity: number; shadowRadius: number },
+  androidElevation: number,
+  webBoxShadow: string
+) => {
+  if (Platform.OS === 'web') {
+    return { boxShadow: webBoxShadow };
+  } else if (Platform.OS === 'android') {
+    return { elevation: androidElevation };
+  } else {
+    return iosShadow;
+  }
+};
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -365,25 +447,99 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  progressContainer: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    backgroundColor: palette.primary[900],
+  backgroundDecor: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 500,
+    zIndex: 0,
+    overflow: 'hidden',
   },
-  progressBar: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    alignItems: 'center',
-  },
-  progressSegment: {
+  backgroundGradient: {
     flex: 1,
-    height: 3,
-    backgroundColor: 'rgba(233, 229, 214, 0.2)',
-    borderRadius: 2,
+    opacity: 0.3,
   },
-  progressActive: {
+  decorCircle1: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(233, 229, 214, 0.03)',
+    top: -100,
+    right: -50,
+  },
+  decorCircle2: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(233, 229, 214, 0.02)',
+    top: 200,
+    left: -30,
+  },
+  progressContainer: {
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  progressSteps: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  progressStep: {
+    alignItems: 'center',
+    gap: spacing.xs,
+    flex: 0,
+  },
+  progressDot: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(233, 229, 214, 0.15)',
+    borderWidth: 2,
+    borderColor: 'rgba(233, 229, 214, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressDotActive: {
     backgroundColor: palette.secondary[500],
+    borderColor: palette.secondary[500],
+    ...createShadow(
+      {
+        shadowColor: palette.secondary[500],
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      3,
+      '0 2px 8px rgba(233, 229, 214, 0.4)'
+    ),
+  },
+  progressLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: 'rgba(233, 229, 214, 0.2)',
+    marginHorizontal: spacing.base,
+    marginTop: 15,
+  },
+  progressLineActive: {
+    backgroundColor: palette.secondary[500],
+  },
+  progressLabel: {
+    ...typography.caption,
+    fontSize: 11,
+    color: palette.accent.white,
+    opacity: 0.6,
+    fontWeight: '500',
+  },
+  progressLabelActive: {
+    opacity: 1,
+    color: palette.secondary[500],
+    fontWeight: '600',
   },
   container: {
     flex: 1,
@@ -433,81 +589,192 @@ const styles = StyleSheet.create({
     marginTop: spacing.base,
     paddingBottom: spacing.xxxl,
   },
-  recentTitle: {
-    ...typography.h4,
-    fontWeight: '400',
-    color: palette.accent.white,
-    marginBottom: spacing.lg,
-    textAlign: 'left',
-  },
-  tipContainer: {
+  editorialHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.sm,
-    backgroundColor: 'rgba(233, 229, 214, 0.08)',
-    borderRadius: 12,
+    marginBottom: spacing.xl,
+  },
+  headerAccent: {
+    width: 4,
+    height: 64,
+    backgroundColor: palette.secondary[500],
+    borderRadius: 2,
+    marginRight: spacing.md,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    color: palette.secondary[500],
+    marginBottom: spacing.xs - 2,
+  },
+  recentTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: palette.accent.white,
+    marginBottom: spacing.xs,
+    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    ...typography.body,
+    fontSize: 14,
+    color: palette.accent.white,
+    opacity: 0.7,
+    lineHeight: 20,
+  },
+  tipCard: {
+    marginBottom: spacing.xl,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...createShadow(
+      {
+        shadowColor: palette.secondary[500],
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      4,
+      '0 4px 12px rgba(233, 229, 214, 0.15)'
+    ),
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'transform 0.2s ease',
+        ':hover': {
+          transform: 'translateY(-2px)',
+        },
+      } as any,
+    }),
+  },
+  tipGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: spacing.base,
-    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(233, 229, 214, 0.15)',
+    borderColor: 'rgba(233, 229, 214, 0.25)',
+    borderRadius: 16,
+  },
+  tipIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(233, 229, 214, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  tipContent: {
+    flex: 1,
+  },
+  tipTitle: {
+    ...typography.label,
+    fontSize: 14,
+    fontWeight: '700',
+    color: palette.secondary[500],
+    marginBottom: spacing.xs - 2,
   },
   tipText: {
     ...typography.body,
     fontSize: 14,
     color: palette.accent.white,
     opacity: 0.9,
-    flex: 1,
     lineHeight: 20,
-  },
-  tipLabel: {
-    fontWeight: '600',
-    color: palette.secondary[500],
   },
   videoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   uploadCard: {
     width: '48%',
     aspectRatio: 9 / 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: palette.secondary[500],
-    borderStyle: 'dashed',
-    position: 'relative',
+    ...createShadow(
+      {
+        shadowColor: palette.secondary[500],
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+      },
+      4,
+      '0 4px 12px rgba(233, 229, 214, 0.2)'
+    ),
     ...Platform.select({
       web: {
         cursor: 'pointer',
-      },
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        ':hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 8px 20px rgba(233, 229, 214, 0.3)',
+        },
+      } as any,
     }),
   },
-  uploadCardContent: {
+  uploadCardGradient: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.md,
+    borderWidth: 2,
+    borderColor: 'rgba(233, 229, 214, 0.3)',
+    borderStyle: 'dashed',
+    borderRadius: 16,
+  },
+  uploadIconContainer: {
+    borderRadius: 32,
+    overflow: 'hidden',
+  },
+  uploadIconGradient: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   uploadCardText: {
     ...typography.label,
-    color: palette.secondary[500],
+    fontSize: 16,
+    color: palette.accent.white,
+    fontWeight: '500',
+  },
+  uploadCardSubtext: {
+    ...typography.caption,
+    fontSize: 12,
+    color: palette.accent.white,
+    opacity: 0.7,
     fontWeight: '400',
   },
   thumbnailCard: {
     width: '48%',
     aspectRatio: 9 / 16,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 8,
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     position: 'relative',
+    ...createShadow(
+      {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      4,
+      '0 4px 12px rgba(0, 0, 0, 0.3)'
+    ),
     ...Platform.select({
       web: {
         cursor: 'pointer',
-      },
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        ':hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 8px 20px rgba(0, 0, 0, 0.4)',
+        },
+      } as any,
     }),
   },
   thumbnailContent: {
@@ -550,19 +817,36 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(233, 229, 214, 0.1)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(233, 229, 214, 0.25)',
+    ...createShadow(
+      {
+        shadowColor: palette.secondary[500],
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      2,
+      '0 2px 8px rgba(233, 229, 214, 0.1)'
+    ),
     ...Platform.select({
       web: {
         cursor: 'pointer',
-      },
+        transition: 'all 0.2s ease',
+        ':hover': {
+          backgroundColor: 'rgba(233, 229, 214, 0.15)',
+          borderColor: 'rgba(233, 229, 214, 0.35)',
+        },
+      } as any,
     }),
   },
   showMoreText: {
     ...typography.label,
+    fontSize: 14,
+    fontWeight: '600',
     color: palette.accent.white,
     marginRight: spacing.sm,
-  },
+  }
 });
