@@ -3,6 +3,7 @@
     "name": "Golf Swing App",
     "slug": "golf-swing-app",
     "version": "1.0.0",
+    "scheme": "formance",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "splash": {

@@ -14,6 +14,25 @@ import { LoadingScreen } from '../components/layout/LoadingScreen';
 
 const Stack = createStackNavigator();
 
+// Deep linking configuration
+const linking = {
+  prefixes: ['formance://'],
+  config: {
+    screens: {
+      App: {
+        screens: {
+          Main: {
+            screens: {
+              Home: 'home',
+              Profile: 'profile',
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const RootNavigator: React.FC = () => {
   const { user, loading } = useAuth();
 
@@ -22,7 +41,7 @@ export const RootNavigator: React.FC = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
           <Stack.Screen name="App" component={AppNavigator} />

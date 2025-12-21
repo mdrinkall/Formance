@@ -5,25 +5,42 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ImageBackground, Animated, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
 import { spacing, typography } from '@/styles';
 import { palette } from '@/theme/palette';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useAuthContext } from '../../context/AuthContext';
+import { supabase } from '../../services/supabase';
 
 export default function HomeScreen() {
   const { user } = useAuthContext();
   const navigation = useNavigation();
   const [hasData] = useState(false); // Change to true to see active state
+  const [isSubscribing, setIsSubscribing] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Extract first name from user metadata or use default
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.fullName || 'there';
   const firstName = fullName.split(' ')[0];
+
+  // Log JWT token for Stripe testing
+  useEffect(() => {
+    const getJWT = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        console.log('===========================================');
+        console.log('SUPABASE JWT TOKEN FOR STRIPE TESTING:');
+        console.log(session.access_token);
+        console.log('===========================================');
+      }
+    };
+    getJWT();
+  }, []);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -32,6 +49,53 @@ export default function HomeScreen() {
       useNativeDriver: Platform.OS !== 'web',
     }).start();
   }, [fadeAnim]);
+
+  const handleSubscribe = async () => {
+    try {
+      setIsSubscribing(true);
+
+      // Get the user's session
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        Alert.alert('Error', 'Please log in to subscribe');
+        return;
+      }
+
+      // TODO: Replace with your actual Stripe price ID from Stripe Dashboard
+      const STRIPE_PRICE_ID = 'price_1SgsUFA6KzcdvOtic8aJo9TW'; // Get this from Stripe Dashboard
+
+      // Call the Edge Function to create checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          price_id: STRIPE_PRICE_ID,
+          success_url: 'formance://profile',
+          cancel_url: 'formance://home'
+        }
+      });
+
+      if (error) {
+        console.error('Checkout error:', error);
+        Alert.alert('Error', 'Failed to create checkout session. Please try again.');
+        return;
+      }
+
+      if (data?.url) {
+        // Open Stripe Checkout in browser
+        const supported = await Linking.canOpenURL(data.url);
+        if (supported) {
+          await Linking.openURL(data.url);
+        } else {
+          Alert.alert('Error', 'Cannot open checkout page');
+        }
+      }
+    } catch (error) {
+      console.error('Subscribe error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -53,7 +117,12 @@ export default function HomeScreen() {
           {hasData ? (
             <ActiveUserView username={firstName} navigation={navigation} />
           ) : (
-            <EmptyStateView username={firstName} navigation={navigation} />
+            <EmptyStateView
+              username={firstName}
+              navigation={navigation}
+              onSubscribe={handleSubscribe}
+              isSubscribing={isSubscribing}
+            />
           )}
         </Animated.View>
 
@@ -65,7 +134,17 @@ export default function HomeScreen() {
 }
 
 // ==================== EMPTY STATE VIEW ====================
-function EmptyStateView({ username, navigation }: { username: string; navigation: any }) {
+function EmptyStateView({
+  username,
+  navigation,
+  onSubscribe,
+  isSubscribing,
+}: {
+  username: string;
+  navigation: any;
+  onSubscribe: () => void;
+  isSubscribing: boolean;
+}) {
   return (
     <>
       {/* Section 1: Editorial Welcome Header */}
@@ -190,6 +269,8 @@ function EmptyStateView({ username, navigation }: { username: string; navigation
         accessibilityRole="button"
         accessibilityLabel="Unlock premium features"
         activeOpacity={0.95}
+        onPress={onSubscribe}
+        disabled={isSubscribing}
       >
         <LinearGradient
           colors={[palette.primary[800], palette.primary[600], palette.primary[700]]}
@@ -218,8 +299,14 @@ function EmptyStateView({ username, navigation }: { username: string; navigation
               <PremiumFeature text="Pro drills library" />
             </View>
             <View style={styles.premiumCTA}>
-              <Text style={styles.premiumCTAText}>Start Free Trial</Text>
-              <Ionicons name="arrow-forward" size={20} color={palette.primary[900]} />
+              {isSubscribing ? (
+                <ActivityIndicator size="small" color={palette.primary[900]} />
+              ) : (
+                <>
+                  <Text style={styles.premiumCTAText}>Start Free Trial</Text>
+                  <Ionicons name="arrow-forward" size={20} color={palette.primary[900]} />
+                </>
+              )}
             </View>
           </View>
         </LinearGradient>
