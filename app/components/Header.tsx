@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { spacing, typography } from '@/styles';
 import { palette } from '@/theme/palette';
 import { useNotifications } from '../context/NotificationsContext';
+import { useSubscriptionContext } from '../context/SubscriptionContext';
 import { NotificationsModal } from './NotificationsModal';
 
 interface HeaderProps extends ViewProps {
@@ -34,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { unreadCount } = useNotifications();
+  const { isActive: hasActiveSubscription } = useSubscriptionContext();
   const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
 
   const handleNotifications = () => {
@@ -61,7 +63,14 @@ export const Header: React.FC<HeaderProps> = ({
         {leftAction ? (
           leftAction
         ) : showLogo ? (
-          <Text style={styles.logoText}>FORMANCE</Text>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>FORMANCE</Text>
+            {hasActiveSubscription && (
+              <View style={styles.proBadge}>
+                <Text style={styles.proBadgeText}>PRO</Text>
+              </View>
+            )}
+          </View>
         ) : title ? (
           <Text style={styles.titleText}>{title}</Text>
         ) : (
@@ -122,11 +131,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     minHeight: 44,
   },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   logoText: {
     ...typography.h4,
     color: palette.accent.white,
     letterSpacing: 1.5,
     fontWeight: '400',
+  },
+  proBadge: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs - 2,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFA500',
+  },
+  proBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: palette.primary[900],
   },
   titleText: {
     ...typography.h4,

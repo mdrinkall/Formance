@@ -19,6 +19,7 @@ import { AuthProvider } from './app/context/AuthContext';
 import { ThemeProvider } from './app/context/ThemeContext';
 import { UserProvider } from './app/context/UserContext';
 import { NotificationsProvider } from './app/context/NotificationsContext';
+import { SubscriptionProvider } from './app/context/SubscriptionContext';
 import { RootNavigator } from './app/navigation/RootNavigator';
 
 // Prevent auto-hiding splash screen
@@ -46,12 +47,14 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-          <UserProvider>
-            <NotificationsProvider>
-              <RootNavigator />
-              <StatusBar style="auto" />
-            </NotificationsProvider>
-          </UserProvider>
+          <SubscriptionProvider>
+            <UserProvider>
+              <NotificationsProvider>
+                <RootNavigator />
+                <StatusBar style="auto" />
+              </NotificationsProvider>
+            </UserProvider>
+          </SubscriptionProvider>
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>

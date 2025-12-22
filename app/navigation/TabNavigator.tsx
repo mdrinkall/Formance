@@ -7,6 +7,7 @@
 import React from 'react';
 import { TouchableOpacity, Platform, Modal, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabBar } from '../components/layout/TabBar';
 import { Header } from '../components/Header';
@@ -27,6 +28,7 @@ const Tab = createBottomTabNavigator();
 
 export const TabNavigator: React.FC = () => {
   const { user, signOut } = useAuthContext();
+  const navigation = useNavigation();
   const [settingsModalVisible, setSettingsModalVisible] = React.useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
   const [termsModalVisible, setTermsModalVisible] = React.useState(false);
@@ -36,7 +38,7 @@ export const TabNavigator: React.FC = () => {
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.fullName || 'Profile';
 
   const handleSettings = () => {
-    setSettingsModalVisible(true);
+    navigation.navigate('Settings' as never);
   };
 
   const handleSignOut = async () => {

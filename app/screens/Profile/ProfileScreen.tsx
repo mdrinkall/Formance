@@ -27,7 +27,9 @@ import { Input } from '../../components/ui/Input';
 import { FollowersModal } from '../../components/FollowersModal';
 import { SearchModal } from '../../components/SearchModal';
 import { AnalysisCarousel } from '../../components/AnalysisCarousel';
+import { SubscriptionStatus } from '../../components/SubscriptionStatus';
 import { useAuthContext } from '../../context/AuthContext';
+import { useSubscriptionContext } from '../../context/SubscriptionContext';
 import { supabase } from '../../services/supabase';
 import { uploadAvatar, deleteFile } from '../../services/storageService';
 import { getUserRecordings, getRecording } from '../../services/recordingService';
@@ -53,6 +55,7 @@ interface CommunityPost {
 
 export default function ProfileScreen() {
   const { user } = useAuthContext();
+  const { isActive: hasActiveSubscription } = useSubscriptionContext();
   const navigation = useNavigation<any>();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -517,7 +520,14 @@ export default function ProfileScreen() {
 
         {/* User Info */}
         {profile?.username && (
-          <Text style={styles.username}>@{profile.username}</Text>
+          <View style={styles.usernameContainer}>
+            <Text style={styles.username}>@{profile.username}</Text>
+            {hasActiveSubscription && (
+              <View style={styles.proBadge}>
+                <Text style={styles.proBadgeText}>PRO</Text>
+              </View>
+            )}
+          </View>
         )}
         {profile?.bio && <Text style={styles.bio}>{profile.bio}</Text>}
         {profile?.country && (
@@ -555,6 +565,14 @@ export default function ProfileScreen() {
             </Text>
             <Ionicons name="chevron-forward" size={20} color={palette.text.light.secondary} />
           </TouchableOpacity>
+        )}
+
+        {/* Subscription Status - Only show if no active subscription */}
+        {!hasActiveSubscription && (
+          <SubscriptionStatus
+            style={styles.subscriptionStatus}
+            onUpgrade={() => navigation.navigate('Home')}
+          />
         )}
 
         {/* Analysis Carousel */}
@@ -910,10 +928,29 @@ const styles = StyleSheet.create({
   },
 
   // User Info
+  usernameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
   username: {
     ...typography.label,
     color: palette.text.light.secondary,
-    marginBottom: spacing.sm,
+  },
+  proBadge: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs - 2,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFA500',
+  },
+  proBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: palette.primary[900],
   },
   bio: {
     ...typography.body,
@@ -1089,6 +1126,9 @@ const styles = StyleSheet.create({
         cursor: 'pointer',
       },
     }),
+  },
+  subscriptionStatus: {
+    marginBottom: spacing.lg,
   },
   followRequestsText: {
     ...typography.body,

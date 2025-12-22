@@ -15,10 +15,12 @@ import { palette } from '@/theme/palette';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useAuthContext } from '../../context/AuthContext';
+import { useSubscriptionContext } from '../../context/SubscriptionContext';
 import { supabase } from '../../services/supabase';
 
 export default function HomeScreen() {
   const { user } = useAuthContext();
+  const { isActive: hasActiveSubscription } = useSubscriptionContext();
   const navigation = useNavigation();
   const [hasData] = useState(false); // Change to true to see active state
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -27,20 +29,6 @@ export default function HomeScreen() {
   // Extract first name from user metadata or use default
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.fullName || 'there';
   const firstName = fullName.split(' ')[0];
-
-  // Log JWT token for Stripe testing
-  useEffect(() => {
-    const getJWT = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        console.log('===========================================');
-        console.log('SUPABASE JWT TOKEN FOR STRIPE TESTING:');
-        console.log(session.access_token);
-        console.log('===========================================');
-      }
-    };
-    getJWT();
-  }, []);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -122,6 +110,7 @@ export default function HomeScreen() {
               navigation={navigation}
               onSubscribe={handleSubscribe}
               isSubscribing={isSubscribing}
+              hasActiveSubscription={hasActiveSubscription}
             />
           )}
         </Animated.View>
@@ -139,11 +128,13 @@ function EmptyStateView({
   navigation,
   onSubscribe,
   isSubscribing,
+  hasActiveSubscription,
 }: {
   username: string;
   navigation: any;
   onSubscribe: () => void;
   isSubscribing: boolean;
+  hasActiveSubscription: boolean;
 }) {
   return (
     <>
@@ -263,15 +254,16 @@ function EmptyStateView({
         </ScrollView>
       </View>
 
-      {/* Section 5: Premium Subscription Card */}
-      <TouchableOpacity
-        style={styles.premiumCard}
-        accessibilityRole="button"
-        accessibilityLabel="Unlock premium features"
-        activeOpacity={0.95}
-        onPress={onSubscribe}
-        disabled={isSubscribing}
-      >
+      {/* Section 5: Premium Subscription Card - Only show if no active subscription */}
+      {!hasActiveSubscription && (
+        <TouchableOpacity
+          style={styles.premiumCard}
+          accessibilityRole="button"
+          accessibilityLabel="Unlock premium features"
+          activeOpacity={0.95}
+          onPress={onSubscribe}
+          disabled={isSubscribing}
+        >
         <LinearGradient
           colors={[palette.primary[800], palette.primary[600], palette.primary[700]]}
           start={{ x: 0, y: 0 }}
@@ -311,6 +303,7 @@ function EmptyStateView({
           </View>
         </LinearGradient>
       </TouchableOpacity>
+      )}
     </>
   );
 }

@@ -1,26 +1,100 @@
 /**
  * PaywallScreen
- * Mock paywall for analysis purchase
+ * Paywall for analysis purchase with subscription option
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 import { Button } from '../../components/ui/Button';
 import { AnalysisStackParamList } from '../../types/analysis';
 import { spacing, typography } from '../../styles';
 import { palette } from '../../theme/palette';
+import { useSubscriptionContext } from '../../context/SubscriptionContext';
+import { supabase } from '../../services/supabase';
 
 type Props = StackScreenProps<AnalysisStackParamList, 'Paywall'>;
 
 export default function PaywallScreen({ route, navigation }: Props) {
   const { videoUrl, selectedClub, shotShape } = route.params;
+  const { isActive: hasActiveSubscription, loading: subscriptionLoading } = useSubscriptionContext();
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  // If user has active subscription, skip paywall
+  useEffect(() => {
+    if (!subscriptionLoading && hasActiveSubscription) {
+      navigation.navigate('Loading', { videoUrl, selectedClub, shotShape });
+    }
+  }, [hasActiveSubscription, subscriptionLoading, navigation, videoUrl, selectedClub, shotShape]);
+
+  const handleSubscribe = async () => {
+    try {
+      setIsSubscribing(true);
+
+      // Get the user's session
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        Alert.alert('Error', 'Please log in to subscribe');
+        return;
+      }
+
+      // TODO: Replace with your actual Stripe price ID
+      const STRIPE_PRICE_ID = 'price_1SgsUFA6KzcdvOtic8aJo9TW';
+
+      // Call the Edge Function to create checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          price_id: STRIPE_PRICE_ID,
+          success_url: 'formance://analysis',
+          cancel_url: 'formance://analysis'
+        }
+      });
+
+      if (error) {
+        console.error('Checkout error:', error);
+        Alert.alert('Error', 'Failed to create checkout session. Please try again.');
+        return;
+      }
+
+      if (data?.url) {
+        // Open Stripe Checkout in browser
+        const supported = await Linking.canOpenURL(data.url);
+        if (supported) {
+          await Linking.openURL(data.url);
+        } else {
+          Alert.alert('Error', 'Cannot open checkout page');
+        }
+      }
+    } catch (error) {
+      console.error('Subscribe error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  const handleOneTimePurchase = () => {
+    // TODO: Implement one-time payment flow
+    Alert.alert('Coming Soon', 'One-time purchase option will be available soon. For now, please use the demo or subscribe.');
+  };
 
   const handleContinue = () => {
     navigation.navigate('Loading', { videoUrl, selectedClub, shotShape });
   };
+
+  // Show loading while checking subscription
+  if (subscriptionLoading) {
+    return (
+      <View style={[styles.wrapper, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={palette.accent.white} />
+        <Text style={styles.loadingText}>Checking subscription...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -59,6 +133,7 @@ export default function PaywallScreen({ route, navigation }: Props) {
               activeOpacity={0.9}
               accessibilityRole="button"
               accessibilityLabel="Purchase one-time analysis for £0.99"
+              onPress={handleOneTimePurchase}
             >
               <LinearGradient
                 colors={['rgba(255, 255, 255, 0.12)', 'rgba(255, 255, 255, 0.06)']}
@@ -90,6 +165,8 @@ export default function PaywallScreen({ route, navigation }: Props) {
               activeOpacity={0.9}
               accessibilityRole="button"
               accessibilityLabel="Subscribe to Pro plan for £9.99 per month"
+              onPress={handleSubscribe}
+              disabled={isSubscribing}
             >
               <LinearGradient
                 colors={[palette.secondary[500] + '25', palette.secondary[500] + '15']}
@@ -103,7 +180,11 @@ export default function PaywallScreen({ route, navigation }: Props) {
                 </View>
                 <View style={styles.pricingHeader}>
                   <View style={[styles.pricingIcon, styles.pricingIconPro]}>
-                    <Ionicons name="diamond" size={24} color={palette.primary[900]} />
+                    {isSubscribing ? (
+                      <ActivityIndicator size="small" color={palette.primary[900]} />
+                    ) : (
+                      <Ionicons name="diamond" size={24} color={palette.primary[900]} />
+                    )}
                   </View>
                   <Text style={[styles.cardTitle, styles.cardTitlePro]}>Pro Subscription</Text>
                 </View>
@@ -179,6 +260,16 @@ const styles = StyleSheet.create({
         maxHeight: '100vh',
       },
     }),
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  loadingText: {
+    ...typography.body,
+    color: palette.accent.white,
+    opacity: 0.8,
   },
   backgroundDecor: {
     position: 'absolute',
