@@ -263,21 +263,38 @@ export default function SettingsScreen() {
 
               <View style={styles.divider} />
 
-              {isActive && (
-                <Button
-                  title={canceling ? 'Canceling...' : 'Cancel Subscription'}
-                  variant="outline"
-                  onPress={handleCancelSubscription}
-                  disabled={canceling}
-                  style={styles.cancelButton}
-                />
-              )}
-
-              {subscription.status === 'active' && subscription.current_period_end && (
-                <Text style={styles.cancelNote}>
-                  You'll keep access until {new Date(subscription.current_period_end).toLocaleDateString()}
-                </Text>
-              )}
+              {subscription.cancel_at_period_end ? (
+                <>
+                  <View style={styles.cancellationWarning}>
+                    <Ionicons name="alert-circle" size={20} color={palette.warning} />
+                    <Text style={styles.cancellationText}>
+                      Subscription will end on {subscription.cancel_at ? new Date(subscription.cancel_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'end of period'}
+                    </Text>
+                  </View>
+                  <Button
+                    title={canceling ? 'Reactivating...' : 'Reactivate Subscription'}
+                    variant="primary"
+                    onPress={handleReactivate}
+                    disabled={canceling}
+                    style={styles.reactivateButton}
+                  />
+                </>
+              ) : isActive ? (
+                <>
+                  <Button
+                    title={canceling ? 'Canceling...' : 'Cancel Subscription'}
+                    variant="outline"
+                    onPress={handleCancelSubscription}
+                    disabled={canceling}
+                    style={styles.cancelButton}
+                  />
+                  {subscription.current_period_end && (
+                    <Text style={styles.cancelNote}>
+                      Renews on {new Date(subscription.current_period_end).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </Text>
+                  )}
+                </>
+              ) : null}
             </Card>
           ) : (
             <Card style={styles.card}>
@@ -599,7 +616,7 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     ...typography.label,
-    fontWeight: '600',
+    fontWeight: '400',
     color: palette.text.light.primary,
   },
   divider: {
@@ -615,6 +632,24 @@ const styles = StyleSheet.create({
     color: palette.text.light.secondary,
     textAlign: 'center',
     marginTop: spacing.sm,
+  },
+  cancellationWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `${palette.warning}15`,
+    padding: spacing.md,
+    borderRadius: 12,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  cancellationText: {
+    ...typography.body,
+    fontSize: 13,
+    color: palette.text.light.primary,
+    flex: 1,
+  },
+  reactivateButton: {
+    marginTop: spacing.md,
   },
   noSubscription: {
     alignItems: 'center',
@@ -739,7 +774,57 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
-  cancelButton: {
-    marginBottom: spacing.base,
+
+  // Modal styles
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.base,
+  },
+  deleteModalContent: {
+    backgroundColor: palette.accent.white,
+    borderRadius: 16,
+    padding: spacing.xl,
+    width: '100%',
+    maxWidth: 400,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+      },
+      android: {
+        elevation: 8,
+      },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+    }),
+  },
+  deleteModalHeader: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  deleteModalTitle: {
+    ...typography.h3,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  deleteModalDescription: {
+    ...typography.body,
+    color: palette.text.light.secondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  deleteModalActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  deleteModalButton: {
+    flex: 1,
   },
 });

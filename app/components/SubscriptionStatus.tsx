@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   title: {
     ...typography.label,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '400',
     color: palette.text.light.primary,
     marginBottom: spacing.xs - 2,
   },
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   upgradeButtonText: {
     ...typography.label,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '400',
     color: palette.accent.white,
   },
 });
