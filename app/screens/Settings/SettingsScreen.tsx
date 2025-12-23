@@ -3,8 +3,8 @@
  * App settings including subscription management
  */
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ActivityIndicator, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, ActivityIndicator, Modal, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { spacing, typography } from '@/styles';
@@ -27,6 +27,9 @@ export default function SettingsScreen() {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [updatingPayment, setUpdatingPayment] = useState(false);
 
   const handleCancelSubscription = () => {
     if (!subscription?.stripe_subscription_id) {
@@ -163,6 +166,65 @@ export default function SettingsScreen() {
       setDeleting(false);
     }
   };
+
+  const handleUpdatePaymentMethod = async () => {
+    try {
+      setUpdatingPayment(true);
+
+      const returnUrl = Platform.OS === 'web'
+        ? window.location.href
+        : 'formance://settings';
+
+      const { data, error } = await supabase.functions.invoke('create-billing-portal-session', {
+        body: { return_url: returnUrl },
+      });
+
+      if (error) {
+        console.error('Error creating billing portal session:', error);
+        return;
+      }
+
+      if (data?.url) {
+        if (Platform.OS === 'web') {
+          window.location.href = data.url;
+        } else {
+          await Linking.openURL(data.url);
+        }
+      }
+    } catch (error) {
+      console.error('Error opening billing portal:', error);
+    } finally {
+      setUpdatingPayment(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      if (!user?.id) return;
+
+      try {
+        setPaymentsLoading(true);
+        const { data, error } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) {
+          console.error('Error fetching payments:', error);
+        } else {
+          setPayments(data || []);
+        }
+      } catch (error) {
+        console.error('Error loading payments:', error);
+      } finally {
+        setPaymentsLoading(false);
+      }
+    };
+
+    fetchPayments();
+  }, [user?.id]);
 
   return (
     <View style={styles.wrapper}>
@@ -313,7 +375,86 @@ export default function SettingsScreen() {
               </View>
             </Card>
           )}
+
+          {/* Manage Payment Method */}
+          {subscription && (
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={handleUpdatePaymentMethod}
+              disabled={updatingPayment}
+              accessibilityRole="button"
+              accessibilityLabel="Manage payment method"
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="card-outline" size={24} color={palette.text.light.primary} />
+                <Text style={styles.settingLabel}>
+                  {updatingPayment ? 'Opening...' : 'Manage Payment Method'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={palette.text.light.secondary} />
+            </TouchableOpacity>
+          )}
         </View>
+
+        {/* Billing History Section */}
+        {subscription && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Billing History</Text>
+
+            {paymentsLoading ? (
+              <Card style={styles.card}>
+                <ActivityIndicator size="small" color={palette.primary[700]} />
+                <Text style={styles.loadingText}>Loading invoices...</Text>
+              </Card>
+            ) : payments.length > 0 ? (
+              <Card style={styles.card}>
+                {payments.map((payment, index) => (
+                  <View key={payment.id}>
+                    <View style={styles.invoiceRow}>
+                      <View style={styles.invoiceInfo}>
+                        <View style={styles.invoiceHeader}>
+                          <Ionicons
+                            name={payment.status === 'paid' ? 'checkmark-circle' : 'alert-circle'}
+                            size={20}
+                            color={payment.status === 'paid' ? palette.success : palette.error}
+                          />
+                          <Text style={styles.invoiceDate}>
+                            {new Date(payment.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </Text>
+                        </View>
+                        <Text style={styles.invoiceAmount}>
+                          £{(payment.amount_paid / 100).toFixed(2)}
+                        </Text>
+                        <Text style={styles.invoiceStatus}>
+                          {payment.status === 'paid' ? 'Paid' : payment.status}
+                        </Text>
+                      </View>
+                      {payment.invoice_pdf && (
+                        <TouchableOpacity
+                          style={styles.downloadButton}
+                          onPress={() => Linking.openURL(payment.invoice_pdf)}
+                          accessibilityRole="button"
+                          accessibilityLabel="Download invoice"
+                        >
+                          <Ionicons name="download-outline" size={20} color={palette.primary[700]} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    {index < payments.length - 1 && <View style={styles.invoiceDivider} />}
+                  </View>
+                ))}
+              </Card>
+            ) : (
+              <Card style={styles.card}>
+                <Text style={styles.noInvoicesText}>No billing history yet</Text>
+              </Card>
+            )}
+          </View>
+        )}
 
         {/* Account Section */}
         <View style={styles.section}>
@@ -626,6 +767,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginTop: spacing.sm,
+    alignSelf: 'stretch',
   },
   cancelNote: {
     ...typography.caption,
@@ -650,6 +792,63 @@ const styles = StyleSheet.create({
   },
   reactivateButton: {
     marginTop: spacing.md,
+  },
+  invoiceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  invoiceInfo: {
+    flex: 1,
+  },
+  invoiceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  invoiceDate: {
+    ...typography.label,
+    fontSize: 14,
+    fontWeight: '500',
+    color: palette.text.light.primary,
+  },
+  invoiceAmount: {
+    ...typography.h4,
+    fontSize: 18,
+    color: palette.text.light.primary,
+    marginBottom: spacing.xs - 2,
+  },
+  invoiceStatus: {
+    ...typography.caption,
+    fontSize: 12,
+    color: palette.text.light.secondary,
+    textTransform: 'capitalize',
+  },
+  downloadButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: `${palette.primary[700]}10`,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      },
+    }),
+  },
+  invoiceDivider: {
+    height: 1,
+    backgroundColor: palette.border.light,
+    marginVertical: spacing.sm,
+  },
+  noInvoicesText: {
+    ...typography.body,
+    color: palette.text.light.secondary,
+    textAlign: 'center',
+    paddingVertical: spacing.lg,
   },
   noSubscription: {
     alignItems: 'center',

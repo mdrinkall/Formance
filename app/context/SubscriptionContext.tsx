@@ -11,6 +11,8 @@ interface SubscriptionContextValue {
   subscription: Subscription | null;
   isActive: boolean;
   isExpired: boolean;
+  isPastDue: boolean;
+  needsPaymentMethod: boolean;
   daysRemaining: number | null;
   loading: boolean;
   error: Error | null;

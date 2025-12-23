@@ -28,6 +28,7 @@ import { FollowersModal } from '../../components/FollowersModal';
 import { SearchModal } from '../../components/SearchModal';
 import { AnalysisCarousel } from '../../components/AnalysisCarousel';
 import { SubscriptionStatus } from '../../components/SubscriptionStatus';
+import { PaymentFailureBanner } from '../../components/PaymentFailureBanner';
 import { useAuthContext } from '../../context/AuthContext';
 import { useSubscriptionContext } from '../../context/SubscriptionContext';
 import { supabase } from '../../services/supabase';
@@ -464,6 +465,9 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* Payment Failure Banner */}
+        <PaymentFailureBanner />
+
         {/* Profile Picture, Followers, Following, Handicap Row */}
         <View style={styles.statsRow}>
           <TouchableOpacity

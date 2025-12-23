@@ -57,8 +57,8 @@ export default function HomeScreen() {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: {
           price_id: STRIPE_PRICE_ID,
-          success_url: 'formance://profile',
-          cancel_url: 'formance://home'
+          success_url: 'http://localhost:8081/Tabs/Profile',
+          cancel_url: 'http://localhost:8081/Tabs/Profile'
         }
       });
 

@@ -18,6 +18,8 @@ interface UseSubscriptionReturn {
   subscription: Subscription | null;
   isActive: boolean;
   isExpired: boolean;
+  isPastDue: boolean;
+  needsPaymentMethod: boolean;
   daysRemaining: number | null;
   loading: boolean;
   error: Error | null;
@@ -90,11 +92,15 @@ export function useSubscription(): UseSubscriptionReturn {
 
   const isExpired = subscription ? isSubscriptionExpired(subscription) : false;
   const daysRemaining = subscription ? getDaysRemaining(subscription) : null;
+  const isPastDue = subscription?.status === 'past_due';
+  const needsPaymentMethod = isPastDue || subscription?.status === 'unpaid';
 
   return {
     subscription,
     isActive,
     isExpired,
+    isPastDue,
+    needsPaymentMethod,
     daysRemaining,
     loading,
     error,

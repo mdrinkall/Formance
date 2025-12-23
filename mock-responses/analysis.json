@@ -3,6 +3,7 @@
   "skill_level": "Developing",
   "club_used": "5-iron",
   "shot_shape": "fade",
+  "swing_begin_timeframe": "0.85s",
   "category_scores": {
     "setup_posture": {
       "score": 14,
