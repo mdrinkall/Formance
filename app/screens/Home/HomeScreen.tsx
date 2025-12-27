@@ -258,28 +258,32 @@ function EmptyStateView({
       {/* Section 2: Premium Quick Actions Grid */}
       <View style={styles.quickActionsGrid}>
         <PremiumQuickAction
-          icon="trophy"
-          label="Compete"
-          description="Join challenges"
+          icon="videocam"
+          label="AI Coach"
+          description="Analyze Swing"
           gradient={[palette.primary[700], palette.primary[500]]}
+          onPress={() => navigation.navigate('Analysis')}
         />
         <PremiumQuickAction
-          icon="analytics"
-          label="Analyze"
-          description="Track progress"
+          icon="stats-chart"
+          label="Swing Progress"
+          description="Compare Swings"
           gradient={[palette.primary[600], palette.primary[400]]}
+          onPress={() => navigation.navigate('History')}
+        />
+        <PremiumQuickAction
+          icon="trophy"
+          label="Compete"
+          description="Join Challenges"
+          gradient={[palette.primary[500], palette.primary[300]]}
+          onPress={() => navigation.navigate('Community')}
         />
         <PremiumQuickAction
           icon="people"
           label="Community"
-          description="Connect & learn"
-          gradient={[palette.primary[500], palette.primary[300]]}
-        />
-        <PremiumQuickAction
-          icon="book"
-          label="Resources"
-          description="Expert tips"
+          description="Share Feedback"
           gradient={[palette.primary[800], palette.primary[600]]}
+          onPress={() => navigation.navigate('Community')}
         />
       </View>
 
@@ -573,11 +577,13 @@ function PremiumQuickAction({
   label,
   description,
   gradient,
+  onPress,
 }: {
   icon: string;
   label: string;
   description: string;
   gradient: string[];
+  onPress?: () => void;
 }) {
   return (
     <TouchableOpacity
@@ -585,6 +591,7 @@ function PremiumQuickAction({
       activeOpacity={0.9}
       accessibilityRole="button"
       accessibilityLabel={`${label} - ${description}`}
+      onPress={onPress}
     >
       <LinearGradient colors={gradient} style={styles.premiumQuickActionGradient}>
         <Ionicons name={icon as any} size={24} color={palette.accent.white} />
