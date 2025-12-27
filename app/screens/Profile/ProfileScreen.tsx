@@ -44,6 +44,9 @@ interface Profile {
   country: string | null;
   swing_goal: string | null;
   is_private: boolean | null;
+  experience_level: string | null;
+  coaching_history: string | null;
+  handicap: number | null;
 }
 
 interface CommunityPost {
@@ -89,6 +92,9 @@ export default function ProfileScreen() {
   const [editCountry, setEditCountry] = useState('');
   const [editSwingGoal, setEditSwingGoal] = useState('');
   const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [editExperienceLevel, setEditExperienceLevel] = useState('');
+  const [editCoachingHistory, setEditCoachingHistory] = useState('');
+  const [editHandicap, setEditHandicap] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -134,6 +140,9 @@ export default function ProfileScreen() {
       setEditCountry(profileData?.country || '');
       setEditSwingGoal(profileData?.swing_goal || '');
       setEditIsPrivate(profileData?.is_private || false);
+      setEditExperienceLevel(profileData?.experience_level || '');
+      setEditCoachingHistory(profileData?.coaching_history || '');
+      setEditHandicap(profileData?.handicap?.toString() || '');
     } catch (error) {
       console.error('Error loading profile info:', error);
     }
@@ -274,6 +283,9 @@ export default function ProfileScreen() {
         country: editCountry || null,
         swing_goal: editSwingGoal || null,
         is_private: editIsPrivate,
+        experience_level: editExperienceLevel || null,
+        coaching_history: editCoachingHistory || null,
+        handicap: editHandicap ? parseFloat(editHandicap) : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -676,6 +688,28 @@ export default function ProfileScreen() {
               multiline
               numberOfLines={2}
               style={styles.textArea}
+            />
+
+            <Input
+              label="Experience Level"
+              value={editExperienceLevel}
+              onChangeText={setEditExperienceLevel}
+              placeholder="How long have you been playing?"
+            />
+
+            <Input
+              label="Coaching History"
+              value={editCoachingHistory}
+              onChangeText={setEditCoachingHistory}
+              placeholder="Golf coaching experience"
+            />
+
+            <Input
+              label="Handicap (optional)"
+              value={editHandicap}
+              onChangeText={setEditHandicap}
+              placeholder="e.g., 18.5"
+              keyboardType="decimal-pad"
             />
 
             {/* Privacy Toggle */}
