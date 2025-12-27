@@ -90,8 +90,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={true}
                 keyboardShouldPersistTaps="handled"
+                bounces={true}
               >
                 {/* Header with back button and title */}
                 <View style={styles.header}>
@@ -194,35 +195,24 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Platform.select({
       web: {
-        height: '100vh',
-        overflow: 'hidden',
+        maxHeight: '100vh',
       },
     }),
   },
   keyboardView: {
     flex: 1,
-    ...Platform.select({
-      web: {
-        height: '100%',
-      },
-    }),
   },
   scrollView: {
     flex: 1,
+    flexShrink: 1,
     ...Platform.select({
       web: {
-        height: '100%',
         overflow: 'auto',
       },
     }),
   },
   scrollContent: {
     paddingBottom: spacing.xxxl,
-    ...Platform.select({
-      web: {
-        minHeight: '100%',
-      },
-    }),
   },
   header: {
     flexDirection: 'row',
