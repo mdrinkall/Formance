@@ -2,45 +2,56 @@
   "overall_score": 75,
   "skill_level": "Developing",
   "club_used": "5-iron",
-  "shot_shape": "fade",
-  "swing_begin_timeframe": "0.85s",
+  "shot_shape": "straight",
+  "user_context": {
+    "user_handicap": 18,
+    "previous_rankings": [75, 63, 64],
+    "previous_goals_summary": "User recently focused on downswing sequencing for 5 days; setup posture work from prior weeks has improved."
+  },
   "category_scores": {
     "setup_posture": {
-      "score": 14,
-      "feedback": "Neutral stance but ball position is slightly too far forward."
+      "score": 15,
+      "feedback": "Ball position and stance width are now much improved compared to previous swings."
     },
     "backswing_mechanics": {
-      "score": 11,
-      "feedback": "Arms dominate the takeaway with limited shoulder turn."
+      "score": 12,
+      "feedback": "Takeaway still relies too much on arms, limiting torso rotation."
     },
     "downswing_impact": {
-      "score": 13,
-      "feedback": "Steep angle of attack leads to glancing contact and weak fades."
+      "score": 11,
+      "feedback": "Early release causes loss of compression and inconsistent strike."
     },
     "balance_finish": {
-      "score": 13,
-      "feedback": "Finish is upright with weight not fully committed to the lead side."
+      "score": 14,
+      "feedback": "Finish is stable but weight could move more decisively onto lead side."
     },
     "consistency_athleticism": {
-      "score": 14,
-      "feedback": "Good effort and speed, but sequencing limits efficiency."
+      "score": 15,
+      "feedback": "Athletic motion with good intent, but sequencing limits repeatability."
     }
   },
   "what_was_good": [
-    "Stable lower body through impact.",
-    "Good intent to swing aggressively with the driver."
+    "Improved setup compared to earlier swings.",
+    "Athletic tempo and commitment through impact."
   ],
-  "what_was_bad": [
-    "Over-the-top transition causing a steep downswing.",
-    "Lack of torso rotation in the backswing."
+  "what_needs_work": [
+    "Early release in the downswing.",
+    "Limited torso rotation in the backswing."
   ],
-  "immediate_focus": [
-    {
-      "issue": "Shallowing the Downswing",
-      "why_it_matters": "A steep downswing reduces distance and increases side spin.",
-      "simple_fix": "Start the downswing by rotating your hips while keeping your back to the target slightly longer.",
-      "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    }
-  ],
-  "confidence_note": "Driver-specific issues identified; analysis would benefit from impact location data."
+  "primary_focus": {
+    "focus_area": "Early Release",
+    "reason": "This issue has the largest negative impact on strike quality and distance and has not yet stabilized despite prior work.",
+    "simple_cue": "Keep your wrists hinged longer as your body rotates through the ball."
+  },
+  "recommended_drill": {
+    "name": "Pump Drill",
+    "why": "Trains proper sequencing and wrist angle retention into impact.",
+    "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "frequency": "2–3 range sessions this week"
+  },
+  "confidence_note": "Progress is evident in setup consistency. Addressing early release should unlock cleaner contact quickly.",
+  "analysis_meta": {
+    "analysis_version": "v1",
+    "generated_at": "2025-01-14T12:00:00Z"
+  }
 }

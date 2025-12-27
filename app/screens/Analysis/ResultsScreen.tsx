@@ -259,7 +259,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
   ).current;
 
   const badBulletAnimations = useRef(
-    analysisData.what_was_bad.map(() => ({
+    analysisData.what_needs_work.map(() => ({
       opacity: useSharedValue(0),
       iconScale: useSharedValue(0.9),
     }))
@@ -453,12 +453,12 @@ export default function ResultsScreen({ route, navigation }: Props) {
           <View style={styles.heroSection}>
             {/* Circular Score with Radial Indicators */}
             <Animated.View style={[styles.scoreCircleContainer, heroContainerStyle]}>
-              <Svg height={260} width={260} style={styles.svg}>
+              <Svg height={240} width={240} style={styles.svg}>
                 {/* Background circle */}
                 <Circle
                   cx="50%"
                   cy="50%"
-                  r={105}
+                  r={95}
                   stroke="rgba(255, 255, 255, 0.08)"
                   strokeWidth={10}
                   fill="none"
@@ -472,7 +472,7 @@ export default function ResultsScreen({ route, navigation }: Props) {
                     maxScore={20}
                     index={index}
                     total={categories.length}
-                    radius={105}
+                    radius={95}
                     color={CATEGORY_COLORS[key]}
                     animProgress={arcProgress}
                   />
@@ -490,21 +490,46 @@ export default function ResultsScreen({ route, navigation }: Props) {
               </View>
             </Animated.View>
 
-            {/* Subtext row */}
-            <Animated.View style={[styles.subtextCard, labelStyle]}>
-              <View style={styles.subtextRow}>
-                <View style={styles.subtextItem}>
-                  <Ionicons name="golf" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
-                  <Text style={styles.subtextText}>{analysisData.club_used}</Text>
-                </View>
-                <View style={styles.subtextDivider} />
-                <View style={styles.subtextItem}>
-                  <Ionicons name="analytics" size={18} color={palette.secondary[500]} style={styles.subtextIcon} />
-                  <Text style={styles.subtextText}>{analysisData.shot_shape}</Text>
-                </View>
+            {/* Shot Details */}
+            <Animated.View style={[styles.heroShotDetails, labelStyle]}>
+              <View style={styles.heroShotItem}>
+                <Ionicons name="golf" size={16} color={palette.accent.white} style={{ opacity: 0.6 }} />
+                <Text style={styles.heroShotText}>{analysisData.club_used}</Text>
+              </View>
+              <View style={styles.heroShotDivider} />
+              <View style={styles.heroShotItem}>
+                <Ionicons name="analytics" size={16} color={palette.accent.white} style={{ opacity: 0.6 }} />
+                <Text style={styles.heroShotText}>{analysisData.shot_shape}</Text>
               </View>
             </Animated.View>
           </View>
+
+          {/* Primary Focus Section - CRITICAL */}
+          {analysisData.primary_focus && (
+            <View style={styles.section}>
+              <Animated.Text style={[styles.primaryFocusTitle, contentStyle]}>
+                Work on This Week
+              </Animated.Text>
+              <Animated.View style={[styles.primaryFocusCard, contentStyle]}>
+                <View style={styles.primaryFocusHeader}>
+                  <Text style={styles.primaryFocusIssue}>{analysisData.primary_focus.focus_area}</Text>
+                  <View style={styles.primaryFocusBadge}>
+                    <Text style={styles.primaryFocusBadgeText}>Priority #1</Text>
+                  </View>
+                </View>
+
+                <View style={styles.primaryFocusContent}>
+                  <Text style={styles.primaryFocusLabel}>Why this matters</Text>
+                  <Text style={styles.primaryFocusText}>{analysisData.primary_focus.reason}</Text>
+                </View>
+
+                <View style={styles.primaryFocusCue}>
+                  <Ionicons name="bulb-outline" size={16} color={palette.primary[700]} />
+                  <Text style={styles.primaryFocusCueText}>{analysisData.primary_focus.simple_cue}</Text>
+                </View>
+              </Animated.View>
+            </View>
+          )}
 
           {/* Swing Video Card */}
           <View style={styles.section}>
@@ -533,21 +558,47 @@ export default function ResultsScreen({ route, navigation }: Props) {
             </Animated.View>
           </View>
 
+          {/* This Week's Work - Recommended Drill */}
+          {analysisData.recommended_drill && (
+            <View style={styles.sectionCompact}>
+              <Animated.Text style={[styles.weeklyWorkTitle, contentStyle]}>
+                This Week's Work
+              </Animated.Text>
+              <Animated.View style={[styles.weeklyWorkCard, contentStyle]}>
+                <View style={styles.drillHeader}>
+                  <Ionicons name="fitness" size={28} color={palette.secondary[500]} />
+                  <View style={styles.drillHeaderText}>
+                    <Text style={styles.drillName}>{analysisData.recommended_drill.name}</Text>
+                    <Text style={styles.drillFrequency}>{analysisData.recommended_drill.frequency}</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.drillWhy}>{analysisData.recommended_drill.why}</Text>
+
+                {/* YouTube Drill Link */}
+                {analysisData.recommended_drill.youtube_url && (
+                  <TouchableOpacity
+                    style={styles.drillCTAButton}
+                    activeOpacity={0.8}
+                    onPress={() => Linking.openURL(analysisData.recommended_drill.youtube_url)}
+                  >
+                    <Ionicons name="play-circle" size={24} color={palette.primary[900]} />
+                    <Text style={styles.drillCTAText}>Watch Drill</Text>
+                  </TouchableOpacity>
+                )}
+              </Animated.View>
+            </View>
+          )}
+
           {/* Section Divider */}
           <Animated.View style={[styles.sectionDivider, contentStyle]} />
 
-          {/* Category Breakdown Cards - Vertical List */}
-          <View style={styles.section}>
-            <Animated.Text style={[styles.sectionTitle, contentStyle]}>Category Breakdown</Animated.Text>
-
-            {/* Tip Section */}
-            <Animated.View style={[styles.categoryTipContainer, contentStyle]}>
-              <Ionicons name="information-circle-outline" size={16} color={palette.secondary[500]} />
-              <Text style={styles.categoryTipText}>
-                <Text style={styles.categoryTipLabel}></Text>
-                Click on each category to get more insights into the scoring
-              </Text>
-            </Animated.View>
+          {/* Category Breakdown - Simplified */}
+          <View style={styles.sectionCompact}>
+            <Animated.Text style={[styles.sectionTitle, contentStyle]}>Swing Breakdown</Animated.Text>
+            <Animated.Text style={[styles.sectionSubtitle, contentStyle]}>
+              Tap any category for detailed insights
+            </Animated.Text>
 
             {categories.map(([key, value], index) => (
               <AnimatedCategoryCard
@@ -564,80 +615,45 @@ export default function ResultsScreen({ route, navigation }: Props) {
           {/* Section Divider */}
           <Animated.View style={[styles.sectionDivider, contentStyle]} />
 
-          {/* What Went Well */}
+          {/* What Went Well - Brief */}
           <View style={styles.section}>
             <Animated.View style={[styles.feedbackHeader, contentStyle]}>
-              <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-              <Text style={[styles.sectionTitle, styles.inlineTitle]}>What Went Well</Text>
+              <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+              <Text style={[styles.sectionTitleSmall, styles.inlineTitle]}>Strengths</Text>
             </Animated.View>
-            <View style={styles.feedbackCard}>
-              {analysisData.what_was_good.map((item, index) => (
+            <View style={styles.feedbackCardCompact}>
+              {analysisData.what_was_good.slice(0, 3).map((item, index) => (
                 <AnimatedBullet
                   key={index}
                   text={item}
                   color="#10B981"
-                  opacity={goodBulletAnimations[index].opacity}
-                  iconScale={goodBulletAnimations[index].iconScale}
+                  opacity={goodBulletAnimations[index]?.opacity || useSharedValue(1)}
+                  iconScale={goodBulletAnimations[index]?.iconScale || useSharedValue(1)}
                 />
               ))}
             </View>
           </View>
 
-          {/* What Needs Work */}
+          {/* What Needs Work - Supporting issues */}
           <View style={styles.section}>
             <Animated.View style={[styles.feedbackHeader, contentStyle]}>
-              <Ionicons name="alert-circle" size={24} color="#F59E0B" />
-              <Text style={[styles.sectionTitle, styles.inlineTitle]}>What Needs Work</Text>
+              <Ionicons name="alert-circle" size={20} color="#F59E0B" />
+              <Text style={[styles.sectionTitleSmall, styles.inlineTitle]}>Other Areas</Text>
             </Animated.View>
-            <View style={styles.feedbackCard}>
-              {analysisData.what_was_bad.map((item, index) => (
+            <Animated.Text style={[styles.supportingNote, contentStyle]}>
+              Focus on your priority first. These will improve naturally.
+            </Animated.Text>
+            <View style={styles.feedbackCardCompact}>
+              {analysisData.what_needs_work.slice(0, 3).map((item, index) => (
                 <AnimatedBullet
                   key={index}
                   text={item}
                   color="#F59E0B"
-                  opacity={badBulletAnimations[index].opacity}
-                  iconScale={badBulletAnimations[index].iconScale}
+                  opacity={badBulletAnimations[index]?.opacity || useSharedValue(1)}
+                  iconScale={badBulletAnimations[index]?.iconScale || useSharedValue(1)}
                 />
               ))}
             </View>
-          </View>
-
-          {/* Section Divider */}
-          <Animated.View style={[styles.sectionDivider, contentStyle]} />
-
-          {/* Immediate Focus Section */}
-          <View style={styles.section}>
-            <Animated.View style={[styles.feedbackHeader, contentStyle]}>
-              <Ionicons name="flash" size={24} color="#EC4899" />
-              <Text style={[styles.sectionTitle, styles.inlineTitle]}>Immediate Focus</Text>
-            </Animated.View>
-            {analysisData.immediate_focus.map((focus, index) => (
-              <Animated.View key={index} style={[styles.focusCard, contentStyle]}>
-                <Text style={styles.focusIssue}>{focus.issue}</Text>
-
-                <View style={styles.focusSection}>
-                  <Text style={styles.focusLabel}>Why it matters</Text>
-                  <Text style={styles.focusText}>{focus.why_it_matters}</Text>
-                </View>
-
-                <View style={styles.focusSection}>
-                  <Text style={styles.focusLabel}>Simple fix</Text>
-                  <Text style={styles.focusText}>{focus.simple_fix}</Text>
-                </View>
-
-                {/* YouTube Drill Link */}
-                {focus.youtube_url && (
-                  <TouchableOpacity
-                    style={styles.focusCTAButton}
-                    activeOpacity={0.8}
-                    onPress={() => Linking.openURL(focus.youtube_url)}
-                  >
-                    <Text style={styles.focusCTAText}>View Related Drill</Text>
-                    <Ionicons name="arrow-forward" size={16} color={palette.primary[900]} />
-                  </TouchableOpacity>
-                )}
-              </Animated.View>
-            ))}
           </View>
 
           {/* Confidence Note */}
@@ -749,15 +765,44 @@ const styles = StyleSheet.create({
   // Hero Score Section
   heroSection: {
     alignItems: 'center',
-    marginBottom: spacing.xxxl,
+    marginBottom: spacing.xl,
     paddingTop: spacing.lg,
   },
   scoreCircleContainer: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xxxl,
-    height: 260,
+    marginBottom: spacing.lg,
+    height: 240,
+  },
+  heroShotDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.base,
+    marginTop: spacing.base,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: 100,
+    alignSelf: 'center',
+  },
+  heroShotItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  heroShotText: {
+    ...typography.body,
+    fontSize: 13,
+    color: palette.accent.white,
+    opacity: 0.8,
+    textTransform: 'capitalize',
+  },
+  heroShotDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   svg: {
     position: 'absolute',
@@ -820,11 +865,29 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: spacing.xxxl,
   },
+  sectionCompact: {
+    marginBottom: spacing.lg,
+  },
   sectionTitle: {
     ...typography.h4,
     fontWeight: '400',
     color: palette.accent.white,
     marginBottom: spacing.lg,
+  },
+  sectionTitleSmall: {
+    ...typography.h4,
+    fontSize: 18,
+    fontWeight: '400',
+    color: palette.accent.white,
+    marginBottom: spacing.lg,
+  },
+  sectionSubtitle: {
+    ...typography.body,
+    fontSize: 14,
+    color: palette.accent.white,
+    opacity: 0.6,
+    marginBottom: spacing.lg,
+    marginTop: -spacing.sm,
   },
   inlineTitle: {
     marginBottom: 0,
@@ -990,6 +1053,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
   },
+  feedbackCardCompact: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: spacing.base,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  supportingNote: {
+    ...typography.body,
+    fontSize: 13,
+    color: palette.accent.white,
+    opacity: 0.6,
+    marginBottom: spacing.md,
+    fontStyle: 'italic',
+  },
   bulletItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -1011,60 +1089,179 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Immediate Focus Card
-  focusCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 20,
-    padding: spacing.xl,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  focusIssue: {
-    ...typography.h4,
-    fontSize: 20,
-    fontWeight: '500',
+  // Primary Focus Card - CRITICAL SECTION
+  primaryFocusTitle: {
+    ...typography.h3,
+    fontSize: 24,
+    fontWeight: '400',
     color: palette.accent.white,
     marginBottom: spacing.lg,
   },
-  focusSection: {
+  primaryFocusCard: {
+    backgroundColor: palette.secondary[500],
+    borderRadius: 20,
+    padding: spacing.xl,
+    borderWidth: 2,
+    borderColor: palette.secondary[500],
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: '0 6px 12px rgba(0,0,0,0.25)',
+      },
+    }),
+  },
+  primaryFocusHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     marginBottom: spacing.lg,
   },
-  focusLabel: {
+  primaryFocusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: palette.primary[900],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 100,
+    flexShrink: 0,
+  },
+  primaryFocusBadgeText: {
+    ...typography.label,
+    fontSize: 10,
+    fontWeight: '600',
+    color: palette.secondary[500],
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  primaryFocusIssue: {
+    ...typography.h3,
+    fontSize: 22,
+    fontWeight: '600',
+    color: palette.primary[900],
+    lineHeight: 28,
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  primaryFocusContent: {
+    marginBottom: spacing.base,
+  },
+  primaryFocusLabel: {
     ...typography.label,
     fontSize: 11,
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    color: palette.accent.white,
-    opacity: 0.5,
+    letterSpacing: 1.2,
+    color: palette.primary[900],
+    opacity: 0.7,
     marginBottom: spacing.sm,
+    fontWeight: '600',
   },
-  focusText: {
+  primaryFocusText: {
+    ...typography.body,
+    fontSize: 15,
+    color: palette.primary[900],
+    lineHeight: 22,
+    opacity: 0.9,
+  },
+  primaryFocusCue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(26, 77, 46, 0.2)',
+  },
+  primaryFocueCueText: {
+    ...typography.body,
+    fontSize: 14,
+    fontWeight: '500',
+    color: palette.primary[700],
+    flex: 1,
+    lineHeight: 20,
+    opacity: 0.9,
+  },
+
+  // Weekly Work - Drill Card
+  weeklyWorkTitle: {
+    ...typography.h4,
+    fontSize: 20,
+    fontWeight: '400',
+    color: palette.accent.white,
+    marginBottom: spacing.lg,
+  },
+  weeklyWorkCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 20,
+    padding: spacing.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  drillHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    marginBottom: spacing.base,
+  },
+  drillHeaderText: {
+    flex: 1,
+  },
+  drillName: {
+    ...typography.h4,
+    fontSize: 18,
+    fontWeight: '500',
+    color: palette.accent.white,
+    marginBottom: 2,
+  },
+  drillFrequency: {
+    ...typography.body,
+    fontSize: 13,
+    color: palette.accent.white,
+    opacity: 0.7,
+  },
+  drillWhy: {
     ...typography.body,
     fontSize: 15,
     color: palette.accent.white,
-    opacity: 0.95,
+    opacity: 0.9,
     lineHeight: 22,
+    marginBottom: spacing.lg,
   },
-  focusCTAButton: {
+  drillCTAButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.base,
+    gap: spacing.md,
     paddingVertical: spacing.base,
     backgroundColor: palette.secondary[500],
     borderRadius: 12,
-    minHeight: 48,
+    minHeight: 52,
     ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 4,
+      },
       web: {
+        boxShadow: '0 3px 6px rgba(0,0,0,0.2)',
         cursor: 'pointer',
       },
     }),
   },
-  focusCTAText: {
+  drillCTAText: {
     ...typography.label,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: palette.primary[900],
   },
 

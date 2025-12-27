@@ -27,10 +27,38 @@ export interface AnalysisResult {
   confidence_note: string;
 }
 
+export interface Annotations {
+  keyframes?: {
+    [key: string]: {
+      timestamp: number;
+      description: string;
+    };
+  };
+  annotation?: {
+    type: string;
+    purpose: string;
+    show_during: {
+      start_timestamp: number;
+      end_timestamp: number;
+    };
+    coordinates: {
+      from: { x: number; y: number };
+      to: { x: number; y: number };
+    };
+    label: string;
+  };
+  annotation_meta?: {
+    normalized_coordinates: boolean;
+    max_annotations: number;
+    generated_at: string;
+  };
+}
+
 export interface SaveRecordingParams {
   userId: string;
   videoUrl: string;
   analysis: AnalysisResult;
+  annotations?: Annotations;
   clubUsed: string;
   shotShape: string;
 }
@@ -42,6 +70,7 @@ export const saveRecording = async ({
   userId,
   videoUrl,
   analysis,
+  annotations,
   clubUsed,
   shotShape,
 }: SaveRecordingParams): Promise<string> => {
@@ -52,6 +81,7 @@ export const saveRecording = async ({
         user_id: userId,
         video_url: videoUrl,
         analysis: analysis,
+        annotations: annotations,
         score: analysis.overall_score,
         club_used: clubUsed,
         shot_shape: shotShape,

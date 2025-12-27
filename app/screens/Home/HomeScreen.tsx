@@ -24,6 +24,8 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const [hasData] = useState(false); // Change to true to see active state
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [latestRecording, setLatestRecording] = useState<any>(null);
+  const [loadingRecording, setLoadingRecording] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Extract first name from user metadata or use default
@@ -37,6 +39,40 @@ export default function HomeScreen() {
       useNativeDriver: Platform.OS !== 'web',
     }).start();
   }, [fadeAnim]);
+
+  // Fetch most recent recording with analysis
+  useEffect(() => {
+    const fetchLatestRecording = async () => {
+      if (!user) {
+        setLoadingRecording(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('recordings')
+          .select('*')
+          .eq('user_id', user.id)
+          .not('analysis', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          // PGRST116 is "no rows returned" - not an actual error
+          console.error('Error fetching latest recording:', error);
+        }
+
+        setLatestRecording(data);
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setLoadingRecording(false);
+      }
+    };
+
+    fetchLatestRecording();
+  }, [user]);
 
   const handleSubscribe = async () => {
     try {
@@ -103,7 +139,12 @@ export default function HomeScreen() {
       >
         <Animated.View style={{ opacity: fadeAnim }}>
           {hasData ? (
-            <ActiveUserView username={firstName} navigation={navigation} />
+            <ActiveUserView
+              username={firstName}
+              navigation={navigation}
+              latestRecording={latestRecording}
+              loadingRecording={loadingRecording}
+            />
           ) : (
             <EmptyStateView
               username={firstName}
@@ -111,6 +152,8 @@ export default function HomeScreen() {
               onSubscribe={handleSubscribe}
               isSubscribing={isSubscribing}
               hasActiveSubscription={hasActiveSubscription}
+              latestRecording={latestRecording}
+              loadingRecording={loadingRecording}
             />
           )}
         </Animated.View>
@@ -122,6 +165,59 @@ export default function HomeScreen() {
   );
 }
 
+// ==================== WORK ON THIS WEEK WIDGET ====================
+function WorkOnThisWeekWidget({ recording, navigation }: { recording: any; navigation: any }) {
+  if (!recording?.analysis?.primary_focus || !recording?.analysis?.recommended_drill) {
+    return null;
+  }
+
+  const { primary_focus, recommended_drill } = recording.analysis;
+
+  return (
+    <TouchableOpacity
+      style={styles.workWidget}
+      activeOpacity={0.95}
+      onPress={() => {
+        if (recommended_drill.youtube_url) {
+          Linking.openURL(recommended_drill.youtube_url);
+        }
+      }}
+      accessibilityRole="button"
+      accessibilityLabel="Work on this week"
+    >
+      <LinearGradient
+        colors={[palette.secondary[500], '#F5F1E3']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.workWidgetGradient}
+      >
+        <View style={styles.workWidgetHeader}>
+          <View style={styles.workWidgetBadge}>
+            <Ionicons name="flash" size={12} color={palette.secondary[500]} />
+            <Text style={styles.workWidgetBadgeText}>This Week</Text>
+          </View>
+        </View>
+
+        <Text style={styles.workWidgetTitle}>{primary_focus.focus_area}</Text>
+        <Text style={styles.workWidgetDescription} numberOfLines={2}>
+          {primary_focus.reason}
+        </Text>
+
+        <View style={styles.workWidgetDrill}>
+          <View style={styles.workWidgetDrillIcon}>
+            <Ionicons name="play-circle" size={20} color={palette.primary[900]} />
+          </View>
+          <View style={styles.workWidgetDrillInfo}>
+            <Text style={styles.workWidgetDrillName}>{recommended_drill.name}</Text>
+            <Text style={styles.workWidgetDrillFreq}>{recommended_drill.frequency}</Text>
+          </View>
+          <Ionicons name="arrow-forward" size={20} color={palette.primary[700]} />
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+}
+
 // ==================== EMPTY STATE VIEW ====================
 function EmptyStateView({
   username,
@@ -129,15 +225,24 @@ function EmptyStateView({
   onSubscribe,
   isSubscribing,
   hasActiveSubscription,
+  latestRecording,
+  loadingRecording,
 }: {
   username: string;
   navigation: any;
   onSubscribe: () => void;
   isSubscribing: boolean;
   hasActiveSubscription: boolean;
+  latestRecording: any;
+  loadingRecording: boolean;
 }) {
   return (
     <>
+      {/* Work on This Week Widget */}
+      {!loadingRecording && latestRecording && (
+        <WorkOnThisWeekWidget recording={latestRecording} navigation={navigation} />
+      )}
+
       {/* Section 1: Editorial Welcome Header */}
       <View style={styles.heroSection}>
         <View style={styles.welcomeHeader}>
@@ -309,9 +414,24 @@ function EmptyStateView({
 }
 
 // ==================== ACTIVE STATE VIEW ====================
-function ActiveUserView({ username, navigation }: { username: string; navigation: any }) {
+function ActiveUserView({
+  username,
+  navigation,
+  latestRecording,
+  loadingRecording,
+}: {
+  username: string;
+  navigation: any;
+  latestRecording: any;
+  loadingRecording: boolean;
+}) {
   return (
     <>
+      {/* Work on This Week Widget */}
+      {!loadingRecording && latestRecording && (
+        <WorkOnThisWeekWidget recording={latestRecording} navigation={navigation} />
+      )}
+
       {/* Section 1: Personalized Welcome with Stats */}
       <View style={styles.activeHeroSection}>
         <View style={styles.welcomeHeader}>
@@ -1393,5 +1513,95 @@ const styles = StyleSheet.create({
   streakText: {
     ...typography.body,
     color: palette.primary[900],
-  }
+  },
+
+  // Work on This Week Widget
+  workWidget: {
+    marginBottom: spacing.xl,
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...createShadow(
+      {
+        shadowColor: palette.primary[900],
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+      },
+      6,
+      '0 6px 16px rgba(26, 77, 46, 0.2)'
+    ),
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'transform 0.2s ease',
+        ':hover': {
+          transform: 'translateY(-2px)',
+        },
+      } as any,
+    }),
+  },
+  workWidgetGradient: {
+    padding: spacing.lg,
+    minHeight: 160,
+  },
+  workWidgetHeader: {
+    marginBottom: spacing.sm,
+  },
+  workWidgetBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs - 2,
+    backgroundColor: palette.primary[900],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  workWidgetBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: palette.secondary[500],
+    textTransform: 'uppercase',
+  },
+  workWidgetTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: palette.primary[900],
+    marginBottom: spacing.sm,
+    lineHeight: 28,
+  },
+  workWidgetDescription: {
+    fontSize: 14,
+    color: palette.primary[900],
+    opacity: 0.85,
+    lineHeight: 20,
+    marginBottom: spacing.base,
+  },
+  workWidgetDrill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(26, 77, 46, 0.1)',
+    padding: spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(26, 77, 46, 0.15)',
+  },
+  workWidgetDrillIcon: {
+    marginRight: spacing.sm,
+  },
+  workWidgetDrillInfo: {
+    flex: 1,
+  },
+  workWidgetDrillName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: palette.primary[900],
+    marginBottom: 2,
+  },
+  workWidgetDrillFreq: {
+    fontSize: 12,
+    color: palette.primary[900],
+    opacity: 0.7,
+  },
 });

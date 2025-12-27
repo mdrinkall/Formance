@@ -20,6 +20,7 @@ import { palette } from '../../theme/palette';
 import { useAuthContext } from '../../context/AuthContext';
 import { saveRecording } from '../../services/recordingService';
 import mockAnalysis from '../../../mock-responses/analysis.json';
+import mockAnnotations from '../../../mock-responses/annotations.json';
 
 type Props = StackScreenProps<AnalysisStackParamList, 'Loading'>;
 
@@ -61,6 +62,7 @@ export default function AnalysisLoadingScreen({ route, navigation }: Props) {
           userId: user.id,
           videoUrl,
           analysis,
+          annotations: mockAnnotations,
           clubUsed: selectedClub,
           shotShape,
         });

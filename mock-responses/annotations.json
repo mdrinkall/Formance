@@ -1,0 +1,50 @@
+{
+  "keyframes": {
+    "setup": {
+      "timestamp": 0.00,
+      "description": "Club grounded behind the ball, player fully set."
+    },
+    "backswing_start": {
+      "timestamp": 0.35,
+      "description": "Club begins moving away from the ball."
+    },
+    "top_of_backswing": {
+      "timestamp": 1.10,
+      "description": "Club reaches highest point before transition."
+    },
+    "downswing": {
+      "timestamp": 1.35,
+      "description": "Club starts moving downward toward impact."
+    },
+    "impact": {
+      "timestamp": 1.65,
+      "description": "Clubface contacts the ball."
+    },
+    "follow_through": {
+      "timestamp": 1.90,
+      "description": "Club passes shoulder height post-impact."
+    },
+    "finish": {
+      "timestamp": 2.40,
+      "description": "Balanced finish position."
+    }
+  },
+  "annotation": {
+    "type": "line",
+    "purpose": "Show early release by tracking wrist angle loss",
+    "show_during": {
+      "start_timestamp": 1.20,
+      "end_timestamp": 1.65
+    },
+    "coordinates": {
+      "from": { "x": 0.48, "y": 0.42 },
+      "to": { "x": 0.52, "y": 0.60 }
+    },
+    "label": "Wrist angle lost too early"
+  },
+  "annotation_meta": {
+    "normalized_coordinates": true,
+    "max_annotations": 1,
+    "generated_at": "2025-01-14T12:00:02Z"
+  }
+}
