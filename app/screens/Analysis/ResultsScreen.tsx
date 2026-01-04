@@ -204,6 +204,44 @@ export default function ResultsScreen({ route, navigation }: Props) {
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const videoRef = useRef<Video>(null);
 
+  // Hero score entry animations
+  const heroScale = useSharedValue(0.92);
+  const heroOpacity = useSharedValue(0);
+  const scoreOpacity = useSharedValue(0);
+  const scoreTranslateY = useSharedValue(8);
+  const labelOpacity = useSharedValue(0);
+  const arcProgress = useSharedValue(0);
+
+  // All content fades in after hero animation (no scroll-based)
+  const contentOpacity = useSharedValue(0);
+
+  // Get categories (after all hooks are defined)
+  const categories = Object.entries(analysisData.category_scores);
+
+  // Category cards animation - initialize with maximum expected categories (5)
+  const categoryAnimations = useRef(
+    Array.from({ length: 5 }, () => ({
+      opacity: useSharedValue(0),
+      translateY: useSharedValue(12),
+      progressWidth: useSharedValue(0),
+    }))
+  ).current;
+
+  // Bullet points animation - initialize with maximum expected items (10 each)
+  const goodBulletAnimations = useRef(
+    Array.from({ length: 10 }, () => ({
+      opacity: useSharedValue(0),
+      iconScale: useSharedValue(0.9),
+    }))
+  ).current;
+
+  const badBulletAnimations = useRef(
+    Array.from({ length: 10 }, () => ({
+      opacity: useSharedValue(0),
+      iconScale: useSharedValue(0.9),
+    }))
+  ).current;
+
   // Load analysis from database if we have a recordingId and it's from navigation (not from fresh analysis)
   useEffect(() => {
     const loadSavedAnalysis = async () => {
@@ -226,44 +264,6 @@ export default function ResultsScreen({ route, navigation }: Props) {
 
     loadSavedAnalysis();
   }, [recordingId]);
-
-  // Get categories first (needed for animations initialization)
-  const categories = Object.entries(analysisData.category_scores);
-
-  // Hero score entry animations
-  const heroScale = useSharedValue(0.92);
-  const heroOpacity = useSharedValue(0);
-  const scoreOpacity = useSharedValue(0);
-  const scoreTranslateY = useSharedValue(8);
-  const labelOpacity = useSharedValue(0);
-  const arcProgress = useSharedValue(0);
-
-  // All content fades in after hero animation (no scroll-based)
-  const contentOpacity = useSharedValue(0);
-
-  // Category cards animation (staggered for visual interest)
-  const categoryAnimations = useRef(
-    categories.map(() => ({
-      opacity: useSharedValue(0),
-      translateY: useSharedValue(12),
-      progressWidth: useSharedValue(0),
-    }))
-  ).current;
-
-  // Bullet points animation (staggered)
-  const goodBulletAnimations = useRef(
-    analysisData.what_was_good.map(() => ({
-      opacity: useSharedValue(0),
-      iconScale: useSharedValue(0.9),
-    }))
-  ).current;
-
-  const badBulletAnimations = useRef(
-    analysisData.what_needs_work.map(() => ({
-      opacity: useSharedValue(0),
-      iconScale: useSharedValue(0.9),
-    }))
-  ).current;
 
   useEffect(() => {
     // Phase 1: Container appears (300ms)
@@ -422,16 +422,20 @@ export default function ResultsScreen({ route, navigation }: Props) {
     navigation.navigate('VideoUpload');
   };
 
-  const handlePlayVideo = async () => {
-    if (Platform.OS === 'web') {
-      // On web, open video in new tab
-      Linking.openURL(videoUrl);
-    } else {
-      // On mobile, present fullscreen video player
-      if (videoRef.current) {
-        await videoRef.current.presentFullscreenPlayer();
-      }
+  // Video modal state
+  const [isVideoModalVisible, setIsVideoModalVisible] = useState(false);
+  const modalVideoRef = useRef<Video>(null);
+
+  const handleOpenVideoModal = () => {
+    setIsVideoModalVisible(true);
+  };
+
+  const handleCloseVideoModal = async () => {
+    // Pause video when closing modal
+    if (modalVideoRef.current) {
+      await modalVideoRef.current.pauseAsync();
     }
+    setIsVideoModalVisible(false);
   };
 
   const selectedCategoryData = selectedCategory
@@ -537,22 +541,23 @@ export default function ResultsScreen({ route, navigation }: Props) {
             <Animated.View style={contentStyle}>
               <TouchableOpacity
                 style={styles.videoCard}
-                activeOpacity={1}
-                onPress={handlePlayVideo}
+                activeOpacity={0.9}
+                onPress={handleOpenVideoModal}
               >
                 <Video
                   ref={videoRef}
                   source={{ uri: videoUrl }}
-                  style={styles.video}
-                  resizeMode={ResizeMode.COVER}
+                  style={styles.videoThumbnail}
+                  resizeMode="contain"
+                  videoStyle={styles.videoInnerStyle}
                   shouldPlay={false}
                 />
-
-                {/* Play button overlay - always visible */}
+                {/* Play button overlay */}
                 <View style={styles.playButtonOverlay}>
                   <View style={styles.playButton}>
-                    <Ionicons name="play" size={40} color={palette.accent.white} />
+                    <Ionicons name="play" size={32} color={palette.accent.white} />
                   </View>
+                  <Text style={styles.playButtonText}>Tap to watch</Text>
                 </View>
               </TouchableOpacity>
             </Animated.View>
@@ -708,6 +713,40 @@ export default function ResultsScreen({ route, navigation }: Props) {
             )}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Video Player Modal */}
+      <Modal
+        visible={isVideoModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseVideoModal}
+      >
+        <View style={styles.videoModalOverlay}>
+          <View style={styles.videoModalContent}>
+            {/* Close button */}
+            <TouchableOpacity
+              onPress={handleCloseVideoModal}
+              style={styles.videoModalClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close video"
+            >
+              <Ionicons name="close" size={28} color={palette.accent.white} />
+            </TouchableOpacity>
+
+            {/* Video player with controls */}
+            <Video
+              ref={modalVideoRef}
+              source={{ uri: videoUrl }}
+              style={styles.videoModalPlayer}
+              resizeMode="contain"
+              videoStyle={styles.videoInnerStyle}
+              shouldPlay={true}
+              useNativeControls
+              isLooping
+            />
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -899,14 +938,19 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.xl,
   },
 
-  // Video Card
+  // Video Card (thumbnail)
   videoCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     position: 'relative',
+    alignSelf: 'center',
+    width: 200,
+    height: 280,
+    justifyContent: 'center',
+    alignItems: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -923,9 +967,17 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  videoThumbnail: {
+    flex: 1,
+    alignSelf: 'stretch',
+  },
+  videoInnerStyle: {
+    width: '100%',
+    height: '100%',
+  },
   video: {
     width: '100%',
-    aspectRatio: 16 / 9,
+    height: '100%',
     backgroundColor: '#000',
   },
   playButtonOverlay: {
@@ -935,28 +987,55 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   playButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: palette.accent.white,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
-      web: {
-        boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-      },
-    }),
+    marginBottom: spacing.sm,
+  },
+  playButtonText: {
+    ...typography.label,
+    fontSize: 12,
+    color: palette.accent.white,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+
+  // Video Modal
+  videoModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  videoModalContent: {
+    width: '100%',
+    height: '80%',
+    maxWidth: 800,
+    position: 'relative',
+  },
+  videoModalClose: {
+    position: 'absolute',
+    top: -50,
+    right: 0,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  videoModalPlayer: {
+    flex: 1,
+    alignSelf: 'stretch',
   },
 
   // Category Cards
