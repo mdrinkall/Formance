@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 import { OnboardingWrapper } from '../../components/onboarding/OnboardingWrapper';
@@ -67,6 +67,13 @@ export default function GoalScreen({ navigation, route }: Props) {
 
       if (error) {
         console.error('Error saving onboarding data:', error);
+      } else {
+        // Force reload since real-time subscription isn't firing
+        setTimeout(() => {
+          if (Platform.OS === 'web') {
+            window.location.reload();
+          }
+        }, 500);
       }
     } catch (error) {
       console.error('Error in handleSkip:', error);
@@ -104,8 +111,12 @@ export default function GoalScreen({ navigation, route }: Props) {
         return;
       }
 
-      // RootNavigator is listening for profile changes and will automatically
-      // navigate to the main app once it detects onboarding is complete
+      // Force reload since real-time subscription isn't firing
+      setTimeout(() => {
+        if (Platform.OS === 'web') {
+          window.location.reload();
+        }
+      }, 500);
     } catch (error) {
       console.error('Error in saveOnboardingData:', error);
     } finally {
