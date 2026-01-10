@@ -16,7 +16,10 @@ module.exports = {
     ],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.yourcompany.golfswingapp"
+      bundleIdentifier: "com.yourcompany.golfswingapp",
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false
+      }
     },
     android: {
       package: "com.yourcompany.golfswingapp",
@@ -39,7 +42,7 @@ module.exports = {
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_KEY,
       eas: {
-        projectId: "your-project-id"
+        projectId: "0fc823f8-58ec-47f7-b672-542e5946538a"
       }
     }
   }
