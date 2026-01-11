@@ -20,6 +20,7 @@ import { palette } from '../../theme/palette';
 import { useAuthContext } from '../../context/AuthContext';
 import { saveRecording } from '../../services/recordingService';
 import { supabase } from '../../services/supabase';
+import mockAnnotations from '../../../mock-responses/annotations.json';
 
 type Props = StackScreenProps<AnalysisStackParamList, 'Loading'>;
 
@@ -113,23 +114,27 @@ export default function AnalysisLoadingScreen({ route, navigation }: Props) {
         }
 
         // Now call generate-annotations with the primary_focus
-        const annotationsResult = await supabase.functions.invoke('generate-annotations', {
-          body: {
-            video_url: videoUrl,
-            primary_focus: analysis.primary_focus.focus_area,
-          },
-        });
+        // COMMENTED OUT FOR MVP TO SAVE API CALLS - USING MOCK DATA INSTEAD
+        // const annotationsResult = await supabase.functions.invoke('generate-annotations', {
+        //   body: {
+        //     video_url: videoUrl,
+        //     primary_focus: analysis.primary_focus.focus_area,
+        //   },
+        // });
 
-        // Check for errors in annotations
-        if (annotationsResult.error) {
-          console.error('Annotations function error:', annotationsResult.error);
-          throw new Error(`Annotations failed: ${annotationsResult.error.message}`);
-        }
+        // // Check for errors in annotations
+        // if (annotationsResult.error) {
+        //   console.error('Annotations function error:', annotationsResult.error);
+        //   throw new Error(`Annotations failed: ${annotationsResult.error.message}`);
+        // }
 
-        const annotations = annotationsResult.data;
-        if (!annotations) {
-          throw new Error('No annotations data returned');
-        }
+        // const annotations = annotationsResult.data;
+        // if (!annotations) {
+        //   throw new Error('No annotations data returned');
+        // }
+
+        // USE MOCK DATA FOR MVP
+        const annotations = mockAnnotations;
 
         // Save to Supabase
         const recordingId = await saveRecording({
