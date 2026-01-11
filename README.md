@@ -1,169 +1,104 @@
-# Golf Swing App - Expo + React Native Scaffold
+# Formance
 
-A complete mobile app scaffold for AI-powered golf swing analysis with social features, built with Expo, React Native, TypeScript, NativeWind, and Supabase.
+**AI-Powered Golf Swing Analysis**
+
+Formance is a cross-platform mobile application that uses AI to analyze your golf swing. Record your swing on your phone, receive instant feedback with visual annotations, personalized coaching tips, YouTube drill recommendations, and a performance score.
 
 ## Features
 
-- 🏌️ AI Swing Capture & Analysis
-- 👥 Friend System & Social Features
-- ⛳ Score Tracking & Rounds
-- 📊 Statistics & Leaderboards
-- 🔐 Supabase Authentication
-- 💳 Payment Integration Ready
-- 🎨 NativeWind (Tailwind CSS) Styling
-- 🌓 Light/Dark Mode Support
+- **AI Swing Analysis** - Upload your swing video and get instant AI-powered feedback using Google Gemini Video Understanding
+- **Visual Annotations** - See exactly what needs improvement with frame-by-frame keypoint overlays
+- **Personalized Coaching** - Get specific, actionable tips based on your swing mechanics
+- **YouTube Drill Library** - Recommended drills with direct links to video tutorials
+- **Performance Scoring** - Track your progress with detailed scoring across multiple categories
+- **History & Trends** - View past swings and monitor improvement over time
+- **Cross-Platform** - Works seamlessly on iOS, Android, and Web
 
-## Prerequisites
+## Tech Stack
 
-- Node.js 18+ and npm/yarn
-- Expo CLI (`npm install -g expo-cli`)
-- iOS Simulator (Mac) or Android Studio
-- Supabase account (for backend)
+- **Framework**: React Native + Expo
+- **Language**: TypeScript
+- **Backend**: Supabase (Auth, Database, Storage, Edge Functions)
+- **AI**: Google Gemini 2.0 Video Understanding API
+- **Styling**: Custom design system with golf-green (#1A4D2E) brand
+- **State Management**: React Context + Hooks
+- **Navigation**: React Navigation
+
+## Project Structure
+
+```
+app/
+├── components/        # Reusable UI components
+│   ├── ui/           # Design system components (Button, Card, Typography)
+│   └── layout/       # Layout components (Header, Container)
+├── screens/          # App screens organized by feature
+├── services/         # Backend integration (Supabase, AI analysis)
+├── theme/            # Design tokens (colors, spacing, typography)
+├── navigation/       # Navigation configuration
+└── utils/            # Helper functions and utilities
+```
 
 ## Getting Started
 
-### 1. Install Dependencies
+### Prerequisites
 
+- Node.js 18+ and npm/yarn
+- Expo CLI: `npm install -g expo-cli`
+- iOS Simulator (Mac) or Android Studio
+
+### Installation
+
+1. Clone the repository
 ```bash
-npm install
-# or
-yarn install
+git clone https://github.com/yourusername/formance.git
+cd formance
 ```
 
-### 2. Configure Environment Variables
+2. Install dependencies
+```bash
+npm install
+```
 
-Copy `.env.example` to `.env` and add your Supabase credentials:
-
+3. Configure environment variables
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your values:
+Edit `.env` with your Supabase credentials:
 ```
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+EXPO_PUBLIC_SUPABASE_URL=your-supabase-url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-### 3. Start Development Server
-
+4. Start the development server
 ```bash
 npm start
-# or
-yarn start
 ```
 
 Then:
 - Press `i` for iOS simulator
 - Press `a` for Android emulator
+- Press `w` for web browser
 - Scan QR code with Expo Go app on your device
 
-## Project Structure
+## Key Features Implementation
 
-```
-/app
-  /components      # Reusable UI components
-    /ui            # Basic UI elements (Button, Input, Card, etc.)
-    /layout        # Layout components (ScreenContainer, Header, etc.)
-    /charts        # Chart placeholders
-  /constants       # App constants (colors, spacing, etc.)
-  /context         # React Context providers (Auth, Theme, User)
-  /hooks           # Custom React hooks
-  /navigation      # Navigation setup (React Navigation)
-  /screens         # All app screens organized by feature
-  /services        # Backend services (Supabase, API, etc.)
-  /theme           # Design system (colors, typography, spacing)
-  /utils           # Utility functions (formatters, validators, etc.)
-  /assets          # Images, icons, fonts
-```
+### AI Analysis Pipeline
 
-## Key Technologies
+1. User records swing video using device camera
+2. Video uploaded to Supabase Storage
+3. Edge Function calls Google Gemini API for analysis
+4. AI returns structured feedback with primary improvement focus
+5. Second Edge Function generates visual annotations
+6. Results displayed with score, coaching tips, and drill recommendations
 
-- **Expo** - React Native framework
-- **TypeScript** - Type safety
-- **NativeWind** - Tailwind CSS for React Native
-- **React Navigation** - Routing and navigation
-- **Supabase** - Backend (auth, database, storage)
-- **Zustand** - State management (optional)
+### Cross-Platform Design
 
-## Development Workflow
-
-### Implementing Features
-
-All screens and services are currently placeholders with TODO comments. To implement a feature:
-
-1. Start with the service layer (`/app/services/`)
-2. Update the screen component (`/app/screens/`)
-3. Connect to Supabase in the service functions
-4. Test the flow end-to-end
-
-### Adding Supabase Tables
-
-1. Create tables in Supabase dashboard
-2. Generate TypeScript types: `supabase gen types typescript --project-id your-project-id > app/services/database.types.ts`
-3. Update `app/services/supabase.ts` with new types
-4. Implement CRUD operations in relevant service files
-
-### Styling with NativeWind
-
-Use Tailwind classes in your components:
-
-```tsx
-<View className="flex-1 bg-white p-4">
-  <Text className="text-2xl font-bold text-gray-900">Hello</Text>
-</View>
-```
-
-### Navigation
-
-- Auth flow: Onboarding → Login/Signup
-- Main app: Tab Navigator (Home, Capture, History, Leaderboard, Profile)
-- Modals/Stacks: Analysis, Dashboard, Social, Score, Settings, Payments
-
-## Next Steps (TODOs)
-
-### Backend Setup
-- [ ] Create Supabase project
-- [ ] Set up database schema (profiles, swings, scores, friends, etc.)
-- [ ] Configure authentication providers
-- [ ] Set up storage buckets for videos/images
-
-### Authentication
-- [ ] Implement Supabase auth in `authService.ts`
-- [ ] Connect auth screens to backend
-- [ ] Add OAuth providers (Google, Apple)
-- [ ] Test auth flow end-to-end
-
-### Core Features
-- [ ] Implement camera capture with expo-camera
-- [ ] Integrate AI swing analysis API
-- [ ] Build score tracking functionality
-- [ ] Implement friend system
-- [ ] Create leaderboard with real data
-- [ ] Add group rounds/meetups
-
-### UI/UX
-- [ ] Replace placeholder icons with icon library (Ionicons, etc.)
-- [ ] Implement actual charts (Victory Charts or similar)
-- [ ] Add loading states and error handling
-- [ ] Create custom splash screen and app icon
-- [ ] Implement dark mode theming
-
-### Payments
-- [ ] Integrate Stripe or RevenueCat
-- [ ] Create subscription plans
-- [ ] Implement payment flow
-
-## Build for Production
-
-### iOS
-```bash
-expo build:ios
-```
-
-### Android
-```bash
-expo build:android
-```
+Built with a mobile-first approach while ensuring web compatibility:
+- Responsive layouts using design system spacing tokens
+- Platform-specific shadows and interactions
+- Accessible touch targets (44×44pt minimum)
+- Support for light/dark mode
 
 ## Scripts
 
@@ -174,12 +109,13 @@ expo build:android
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Check TypeScript types
 
-## Contributing
+## Design System
 
-1. Create a feature branch
-2. Implement the feature
-3. Test thoroughly
-4. Submit a pull request
+Formance uses a custom design system with:
+- **Colors**: Golf-green primary (#1A4D2E) with cream accents (#E9E5D6)
+- **Spacing**: 4pt grid system (xs: 4px → massive: 64px)
+- **Typography**: Oswald (headers) + Lato (body)
+- **Components**: 20+ reusable UI components with consistent styling
 
 ## License
 
@@ -187,4 +123,4 @@ MIT
 
 ---
 
-**Note**: This is a scaffold project. All features are placeholders marked with TODO comments. You'll need to implement actual functionality, connect to Supabase, and add business logic.
+Built with React Native, Expo, and Supabase
